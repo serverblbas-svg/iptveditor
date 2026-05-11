@@ -45,6 +45,7 @@
     async function fetchM3U() {
         try {
             // ناوی فایلەکەت لێرە بە تەواوی وەک خۆی بنووسە
+            const response = await fetch('serverblbas_m3u8.m3u');
             const response = await fetch('https://raw.githubusercontent.com/serverblbas-svg/serverblbas_m3u8/main/serverblbas_m3u8.m3u');
             const data = await response.text();
             parseM3U(data);
