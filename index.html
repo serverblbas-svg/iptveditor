@@ -3,10 +3,10 @@
     let hls = new Hls();
     let allChannels = [];
 
-    // فەرمانی خوێندنەوەی فایلی M3U بە شێوەی ئۆتۆماتیکی
     async function fetchM3U() {
         try {
-            const response = await fetch('serverblbas_m3u8.m3u');
+            // زیادکردنی کات بۆ ئەوەی هەمیشە وەشانی نوێی فایلەکە بخوێنێتەوە
+            const response = await fetch('serverblbas_m3u8.m3u?t=' + list.getTime());
             const data = await response.text();
             parseM3U(data);
         } catch (err) {
@@ -16,18 +16,23 @@
     }
 
     function parseM3U(content) {
+        // پاککردنەوەی لیستەکە پێش خوێندنەوەی نوێ
+        allChannels = [];
         const lines = content.split('\n');
         let currentCh = {};
         
         lines.forEach(line => {
             line = line.trim();
             if (line.startsWith('#EXTINF:')) {
-                const nameMatch = line.split(',')[1];
-                const groupMatch = line.match(/group-title="([^"]+)"/);
-                const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                // دۆزینەوەی ناوی کەناڵ بە وردی (دوای کۆما)
+                const infoParts = line.split(',');
+                const name = infoParts.length > 1 ? infoParts[1].trim() : "کەناڵی بێ ناو";
+                
+                const groupMatch = line.match(/group-title="([^"]+)"/i);
+                const logoMatch = line.match(/tvg-logo="([^"]+)"/i);
                 
                 currentCh = {
-                    name: nameMatch || "کەناڵی بێ ناو",
+                    name: name,
                     group: groupMatch ? groupMatch[1] : "گشتی",
                     logo: logoMatch ? logoMatch[1] : "https://logo.m3uassets.com/a.png"
                 };
@@ -45,6 +50,8 @@
     function createGroupButtons() {
         const groups = ["ALL", ...new Set(allChannels.map(ch => ch.group))];
         const container = document.getElementById('groupList');
+        if(!container) return;
+        
         container.innerHTML = '';
         groups.forEach(g => {
             const btn = document.createElement('button');
@@ -60,8 +67,10 @@
     }
 
     function loadChannels(filtered) {
-        const list = document.getElementById('channelList');
-        list.innerHTML = '';
+        const listContainer = document.getElementById('channelList');
+        if(!listContainer) return;
+        
+        listContainer.innerHTML = '';
         filtered.forEach(ch => {
             const div = document.createElement('div');
             div.className = 'channel-card';
@@ -70,7 +79,7 @@
                 <span>${ch.name}</span>
             `;
             div.onclick = () => playStream(ch, div);
-            list.appendChild(div);
+            listContainer.appendChild(div);
         });
     }
 
@@ -85,7 +94,7 @@
             hls.loadSource(ch.url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else {
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = ch.url;
             video.play();
         }
@@ -96,6 +105,6 @@
         else loadChannels(allChannels.filter(c => c.group === group));
     }
 
-    // دەستپێکردن
+    // دەستپێکردنی پڕۆسەکە
     fetchM3U();
 </script>
