@@ -48,7 +48,7 @@
             async function fetchM3U() {
         try {
             // بەکارهێنانی لینکی Raw بۆ ئەوەی گیتھەب ڕێگری نەکات
-            const m3uUrl = 'https://raw.githubusercontent.com/serverblbas-svg/serverblbas_m3u8/main/serverblbas_m3u8.m3u';
+            const m3uUrl = 'https://raw.githubusercontent.com/serverblbas-svg/serverblbas_m3u8/master/serverblbas_m3u8.m3u';
             const response = await fetch(m3uUrl);
             
             if (!response.ok) throw new Error('فایلەکە نەدۆزرایەوە');
@@ -60,7 +60,7 @@
             document.getElementById('currentChannel').innerText = "هەڵە: ناتوانم فایلی m3u بخوێنمەوە";
         }
     }
-            const response = await fetch('https://raw.githubusercontent.com/serverblbas-svg/serverblbas_m3u8/main/serverblbas_m3u8.m3u');
+            const response = await fetch('https://raw.githubusercontent.com/serverblbas-svg/serverblbas_m3u8/master/serverblbas_m3u8.m3u');
             const data = await response.text();
             parseM3U(data);
         } catch (err) {
