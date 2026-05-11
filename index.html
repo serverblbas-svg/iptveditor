@@ -1,3 +1,42 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAMAL PRO ULTRA - Luxury IPTV</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        :root { --primary: #f0b90b; --bg: #05080a; --card: rgba(255,255,255,0.05); }
+        body { background: #05080a; color: white; font-family: sans-serif; margin: 0; padding: 15px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .player-wrapper { background: #000; border-radius: 15px; overflow: hidden; border: 1px solid var(--primary); margin-bottom: 20px; }
+        video { width: 100%; aspect-ratio: 16/9; }
+        .info { padding: 10px; text-align: center; color: var(--primary); font-weight: bold; }
+        .search-box { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--card); color: white; margin-bottom: 15px; outline: none; }
+        .groups { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; }
+        .group-btn { background: var(--card); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+        .group-btn.active { background: var(--primary); color: black; }
+        .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        .channel-card { background: var(--card); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .channel-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .channel-card.active { background: var(--primary); color: black; }
+        .channel-card img { width: 50px; height: 50px; object-fit: contain; margin-bottom: 5px; background: white; border-radius: 5px; padding: 2px; }
+        .channel-card span { display: block; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="player-wrapper">
+        <video id="videoPlayer" controls autoplay></video>
+        <div class="info" id="currentChannel">تکایە کەناڵێک هەڵبژێرە</div>
+    </div>
+
+    <div class="groups" id="groupList"></div>
+    <input type="text" id="searchBox" class="search-box" placeholder="گەڕان بۆ کەناڵ...">
+    <div class="channel-grid" id="channelList"></div>
+</div>
+
 <script>
     const video = document.getElementById('videoPlayer');
     let hls = new Hls();
@@ -5,36 +44,31 @@
 
     async function fetchM3U() {
         try {
-            // زیادکردنی کات بۆ ئەوەی هەمیشە وەشانی نوێی فایلەکە بخوێنێتەوە
-            const response = await fetch('serverblbas_m3u8.m3u?t=' + list.getTime());
+            // ناوی فایلەکەت لێرە بە تەواوی وەک خۆی بنووسە
+            const response = await fetch('serverblbas_m3u8.m3u');
             const data = await response.text();
             parseM3U(data);
         } catch (err) {
-            console.error("Error loading M3U file:", err);
-            document.getElementById('currentChannel').innerText = "هەڵە لە بارکردنی فایلەکە";
+            console.error(err);
+            document.getElementById('currentChannel').innerText = "هەڵە لە بارکردنی لیستەکە";
         }
     }
 
     function parseM3U(content) {
-        // پاککردنەوەی لیستەکە پێش خوێندنەوەی نوێ
-        allChannels = [];
         const lines = content.split('\n');
         let currentCh = {};
+        allChannels = [];
         
         lines.forEach(line => {
             line = line.trim();
             if (line.startsWith('#EXTINF:')) {
-                // دۆزینەوەی ناوی کەناڵ بە وردی (دوای کۆما)
-                const infoParts = line.split(',');
-                const name = infoParts.length > 1 ? infoParts[1].trim() : "کەناڵی بێ ناو";
-                
-                const groupMatch = line.match(/group-title="([^"]+)"/i);
-                const logoMatch = line.match(/tvg-logo="([^"]+)"/i);
-                
+                const name = line.split(',')[1] || "کەناڵی بێ ناو";
+                const group = line.match(/group-title="([^"]+)"/i);
+                const logo = line.match(/tvg-logo="([^"]+)"/i);
                 currentCh = {
                     name: name,
-                    group: groupMatch ? groupMatch[1] : "گشتی",
-                    logo: logoMatch ? logoMatch[1] : "https://logo.m3uassets.com/a.png"
+                    group: group ? group[1] : "گشتی",
+                    logo: logo ? logo[1] : "https://logo.m3uassets.com/a.png"
                 };
             } else if (line.startsWith('http')) {
                 currentCh.url = line;
@@ -42,69 +76,56 @@
                 currentCh = {};
             }
         });
-        
-        createGroupButtons();
-        loadChannels(allChannels);
+        renderGroups();
+        renderChannels(allChannels);
     }
 
-    function createGroupButtons() {
-        const groups = ["ALL", ...new Set(allChannels.map(ch => ch.group))];
+    function renderGroups() {
+        const groups = ["هەمووی", ...new Set(allChannels.map(ch => ch.group))];
         const container = document.getElementById('groupList');
-        if(!container) return;
-        
-        container.innerHTML = '';
-        groups.forEach(g => {
-            const btn = document.createElement('button');
-            btn.className = 'filter-btn' + (g === "ALL" ? ' active' : '');
-            btn.innerText = g === "ALL" ? "هەمووی" : g;
-            btn.onclick = (e) => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                filterByGroup(g);
-            };
-            container.appendChild(btn);
-        });
+        container.innerHTML = groups.map(g => `<button class="group-btn" onclick="filterByGroup('${g}', this)">${g}</button>`).join('');
+        container.firstChild.classList.add('active');
     }
 
-    function loadChannels(filtered) {
-        const listContainer = document.getElementById('channelList');
-        if(!listContainer) return;
-        
-        listContainer.innerHTML = '';
-        filtered.forEach(ch => {
-            const div = document.createElement('div');
-            div.className = 'channel-card';
-            div.innerHTML = `
+    function renderChannels(list) {
+        const container = document.getElementById('channelList');
+        container.innerHTML = list.map(ch => `
+            <div class="channel-card" onclick="playStream('${ch.url}', '${ch.name}', this)">
                 <img src="${ch.logo}" onerror="this.src='https://logo.m3uassets.com/a.png'">
                 <span>${ch.name}</span>
-            `;
-            div.onclick = () => playStream(ch, div);
-            listContainer.appendChild(div);
-        });
+            </div>
+        `).join('');
     }
 
-    function playStream(ch, el) {
+    function playStream(url, name, el) {
         document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
-        document.getElementById('currentChannel').innerText = ch.name;
-
+        document.getElementById('currentChannel').innerText = name;
         if (Hls.isSupported()) {
             hls.destroy();
             hls = new Hls();
-            hls.loadSource(ch.url);
+            hls.loadSource(url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = ch.url;
+        } else {
+            video.src = url;
             video.play();
         }
     }
 
-    function filterByGroup(group) {
-        if (group === 'ALL') loadChannels(allChannels);
-        else loadChannels(allChannels.filter(c => c.group === group));
+    function filterByGroup(group, btn) {
+        document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filtered = group === "هەمووی" ? allChannels : allChannels.filter(ch => ch.group === group);
+        renderChannels(filtered);
     }
 
-    // دەستپێکردنی پڕۆسەکە
+    document.getElementById('searchBox').oninput = (e) => {
+        const val = e.target.value.toLowerCase();
+        renderChannels(allChannels.filter(ch => ch.name.toLowerCase().includes(val)));
+    };
+
     fetchM3U();
 </script>
+</body>
+</html>
