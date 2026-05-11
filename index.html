@@ -27,6 +27,10 @@
         .upload-btn { background: var(--primary); color: black; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; border: none; font-size: 1rem; }
         .upload-btn:hover { opacity: 0.9; }
         .hidden { display: none !important; }
+        .loading { text-align: center; padding: 20px; color: var(--primary); }
+        .source-toggle { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
+        .source-btn { background: var(--card); color: white; border: 1px solid var(--primary); padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+        .source-btn.active { background: var(--primary); color: black; }
     </style>
 </head>
 <body>
@@ -34,17 +38,23 @@
 <div class="container">
     <div class="player-wrapper">
         <video id="videoPlayer" controls autoplay></video>
-        <div class="info" id="currentChannel">تکایە کەناڵێک هەڵبژێرە</div>
+        <div class="info" id="currentChannel">بارکردنی کەناڵەکان...</div>
     </div>
 
-    <div class="upload-area" id="uploadArea">
-        <p>فایلی <code>serverblbas_m3u8.m3u</code> هەڵبژێرە</p><br>
+    <div class="source-toggle" id="sourceToggle">
+        <button class="source-btn active" onclick="loadFromURL()">🌐 لینکی سێرڤەر</button>
+        <button class="source-btn" onclick="showUpload()">📁 فایلی ناوخۆیی</button>
+    </div>
+
+    <div class="upload-area hidden" id="uploadArea">
+        <p>فایلی <code>.m3u</code> یان <code>.m3u8</code> هەڵبژێرە</p><br>
         <input type="file" id="fileInput" accept=".m3u,.m3u8">
         <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📁 هەڵبژاردنی فایل</button>
         <p style="margin-top:15px; font-size:0.8rem; color:#888;">یان فایلەکە ڕابکێشە ئێرە</p>
     </div>
 
-    <div id="appContent" class="hidden">
+    <div id="appContent">
+        <div class="loading" id="loadingMsg">⏳ بارکردنی کەناڵەکان لە سێرڤەر...</div>
         <div class="groups" id="groupList"></div>
         <input type="text" id="searchBox" class="search-box" placeholder="گەڕان بۆ کەناڵ...">
         <div class="channel-grid" id="channelList"></div>
@@ -55,6 +65,42 @@
     const video = document.getElementById('videoPlayer');
     let hls = new Hls();
     let allChannels = [];
+
+    // ===== لینکی سێرڤەری سەرەکی =====
+    const M3U_URL = 'https://xtream-ie.net/get.php?username=iptv2026&password=iptv2026&type=m3u_plus';
+
+    // بارکردن لە لینکی سێرڤەر
+    async function loadFromURL() {
+        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.source-btn')[0].classList.add('active');
+        document.getElementById('uploadArea').classList.add('hidden');
+        document.getElementById('loadingMsg').classList.remove('hidden');
+        document.getElementById('groupList').innerHTML = '';
+        document.getElementById('channelList').innerHTML = '';
+        document.getElementById('currentChannel').innerText = 'بارکردنی کەناڵەکان...';
+
+        try {
+            const response = await fetch(M3U_URL);
+            if (!response.ok) throw new Error('سێرڤەر وەڵام نەدایەوە');
+            const data = await response.text();
+            parseM3U(data);
+            document.getElementById('loadingMsg').classList.add('hidden');
+            document.getElementById('currentChannel').innerText = '✅ ' + allChannels.length + ' کەناڵ بارکرا';
+        } catch (err) {
+            console.error(err);
+            document.getElementById('loadingMsg').classList.add('hidden');
+            document.getElementById('currentChannel').innerText = '❌ هەڵە: ' + err.message;
+            alert('ناتوانم لە لینکی سێرڤەرەوە بار بکەم.\n\nدەتەوێت فایلی ناوخۆیی بەکاربهێنیت؟\n\nتێبینی: لەوانەیە CORS قەدەغەی کردبێت، سێرڤەری ناوخۆیی (Local Server) بەکاربهێنە.');
+        }
+    }
+
+    // پیشاندانی بەشی فایل
+    function showUpload() {
+        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.source-btn')[1].classList.add('active');
+        document.getElementById('uploadArea').classList.remove('hidden');
+        document.getElementById('loadingMsg').classList.add('hidden');
+    }
 
     // ڕاکێشانی فایل (Drag & Drop)
     const uploadArea = document.getElementById('uploadArea');
@@ -78,24 +124,9 @@
         reader.onload = (e) => {
             parseM3U(e.target.result);
             document.getElementById('uploadArea').classList.add('hidden');
-            document.getElementById('appContent').classList.remove('hidden');
             document.getElementById('currentChannel').innerText = "✅ فایلەکە بارکرا - " + allChannels.length + " کەناڵ";
         };
         reader.readAsText(file);
-    }
-
-    // هەوڵدان بۆ خوێندنەوەی فایلی ناوخۆیی (ئەگەر لە سێرڤەرەوە بکرێتەوە)
-    async function fetchM3U() {
-        try {
-            const response = await fetch('serverblbas_m3u8.m3u');
-            if (!response.ok) throw new Error('نیە');
-            const data = await response.text();
-            parseM3U(data);
-            document.getElementById('uploadArea').classList.add('hidden');
-            document.getElementById('appContent').classList.remove('hidden');
-        } catch (err) {
-            console.log('فایلی ناوخۆیی نەدۆزرایەوە، تکایە فایلەکە هەڵبژێرە');
-        }
     }
 
     function parseM3U(content) {
@@ -170,8 +201,8 @@
         renderChannels(allChannels.filter(ch => ch.name.toLowerCase().includes(val)));
     };
 
-    // دەستپێکردن
-    fetchM3U();
+    // دەستپێکردن - هەوڵدان بۆ بارکردن لە لینکی سێرڤەر
+    loadFromURL();
 </script>
 </body>
 </html>
