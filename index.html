@@ -22,6 +22,11 @@
         .channel-card.active { background: var(--primary); color: black; }
         .channel-card img { width: 50px; height: 50px; object-fit: contain; margin-bottom: 5px; background: white; border-radius: 5px; padding: 2px; }
         .channel-card span { display: block; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .upload-area { background: var(--card); border: 2px dashed var(--primary); border-radius: 15px; padding: 30px; text-align: center; margin-bottom: 20px; }
+        .upload-area input { display: none; }
+        .upload-btn { background: var(--primary); color: black; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; border: none; font-size: 1rem; }
+        .upload-btn:hover { opacity: 0.9; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -32,9 +37,18 @@
         <div class="info" id="currentChannel">تکایە کەناڵێک هەڵبژێرە</div>
     </div>
 
-    <div class="groups" id="groupList"></div>
-    <input type="text" id="searchBox" class="search-box" placeholder="گەڕان بۆ کەناڵ...">
-    <div class="channel-grid" id="channelList"></div>
+    <div class="upload-area" id="uploadArea">
+        <p>فایلی <code>serverblbas_m3u8.m3u</code> هەڵبژێرە</p><br>
+        <input type="file" id="fileInput" accept=".m3u,.m3u8">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📁 هەڵبژاردنی فایل</button>
+        <p style="margin-top:15px; font-size:0.8rem; color:#888;">یان فایلەکە ڕابکێشە ئێرە</p>
+    </div>
+
+    <div id="appContent" class="hidden">
+        <div class="groups" id="groupList"></div>
+        <input type="text" id="searchBox" class="search-box" placeholder="گەڕان بۆ کەناڵ...">
+        <div class="channel-grid" id="channelList"></div>
+    </div>
 </div>
 
 <script>
@@ -42,19 +56,45 @@
     let hls = new Hls();
     let allChannels = [];
 
+    // ڕاکێشانی فایل (Drag & Drop)
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = '#fff'; });
+    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'var(--primary)'; });
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = 'var(--primary)';
+        const file = e.dataTransfer.files[0];
+        if (file && (file.name.endsWith('.m3u') || file.name.endsWith('.m3u8'))) {
+            readFile(file);
+        }
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        if (e.target.files[0]) readFile(e.target.files[0]);
+    });
+
+    function readFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            parseM3U(e.target.result);
+            document.getElementById('uploadArea').classList.add('hidden');
+            document.getElementById('appContent').classList.remove('hidden');
+            document.getElementById('currentChannel').innerText = "✅ فایلەکە بارکرا - " + allChannels.length + " کەناڵ";
+        };
+        reader.readAsText(file);
+    }
+
+    // هەوڵدان بۆ خوێندنەوەی فایلی ناوخۆیی (ئەگەر لە سێرڤەرەوە بکرێتەوە)
     async function fetchM3U() {
         try {
-            // لینکی ڕاستەوخۆی فایلەکە لە گیتھەب (Raw)
-            const m3uUrl = 'https://raw.githubusercontent.com/serverblbas-svg/serverblbas_m3u8/master/serverblbas_m3u8.m3u';
-            const response = await fetch(m3uUrl);
-            
-            if (!response.ok) throw new Error('ناتوانم فایلەکە بار بکەم');
-            
+            const response = await fetch('serverblbas_m3u8.m3u');
+            if (!response.ok) throw new Error('نیە');
             const data = await response.text();
             parseM3U(data);
+            document.getElementById('uploadArea').classList.add('hidden');
+            document.getElementById('appContent').classList.remove('hidden');
         } catch (err) {
-            console.error(err);
-            document.getElementById('currentChannel').innerText = "هەڵە: فایلی m3u بار نەکرا";
+            console.log('فایلی ناوخۆیی نەدۆزرایەوە، تکایە فایلەکە هەڵبژێرە');
         }
     }
 
@@ -62,7 +102,7 @@
         const lines = content.split('\n');
         let currentCh = {};
         allChannels = [];
-        
+
         lines.forEach(line => {
             line = line.trim();
             if (line.startsWith('#EXTINF:')) {
