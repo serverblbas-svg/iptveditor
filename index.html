@@ -1,345 +1,101 @@
-<!DOCTYPE html>
-<html lang="ku" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>پلەیەری IPTV - KAMAL PRO ULTRA</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<script>
+    const video = document.getElementById('videoPlayer');
+    let hls = new Hls();
+    let allChannels = [];
 
-        body {
-            background: linear-gradient(135deg, #0a0f1a 0%, #0d1a2b 100%);
-            font-family: 'Arial', 'Segoe UI', 'Tahoma', sans-serif;
-            min-height: 100vh;
-            padding: 15px;
+    // فەرمانی خوێندنەوەی فایلی M3U بە شێوەی ئۆتۆماتیکی
+    async function fetchM3U() {
+        try {
+            const response = await fetch('serverblbas_m3u8.m3u');
+            const data = await response.text();
+            parseM3U(data);
+        } catch (err) {
+            console.error("Error loading M3U file:", err);
+            document.getElementById('currentChannel').innerText = "هەڵە لە بارکردنی فایلەکە";
         }
+    }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* پلەیەری ڤیدیۆ */
-        .player-section {
-            background: #000;
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            position: relative;
-        }
-
-        video {
-            width: 100%;
-            height: auto;
-            max-height: 70vh;
-            background: #000;
-        }
-
-        .player-controls {
-            display: flex;
-            gap: 10px;
-            padding: 12px;
-            background: rgba(0,0,0,0.8);
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .current-channel {
-            flex: 2;
-            color: #f0b90b;
-            font-weight: bold;
-            font-size: 1rem;
-            padding: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 30px;
-            text-align: center;
-        }
-
-        .control-btn {
-            background: #f0b90b;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .control-btn:hover {
-            background: #d4940a;
-            transform: scale(1.02);
-        }
-
-        /* لیستی گروپەکان */
-        .groups-section {
-            margin-bottom: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        .group-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(240,185,11,0.3);
-            padding: 8px 18px;
-            border-radius: 40px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.8rem;
-        }
-
-        .group-btn.active {
-            background: #f0b90b;
-            color: #000;
-            border-color: transparent;
-        }
-
-        .group-btn:hover {
-            background: rgba(240,185,11,0.3);
-        }
-
-        /* لیستی کەناڵەکان */
-        .channels-section {
-            background: rgba(0,0,0,0.5);
-            border-radius: 20px;
-            padding: 15px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        .channels-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 8px;
-        }
-
-        .channel-item {
-            background: rgba(255,255,255,0.08);
-            padding: 10px 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
-        }
-
-        .channel-item:hover {
-            background: rgba(240,185,11,0.2);
-            transform: translateX(-5px);
-        }
-
-        .channel-item.active {
-            background: #f0b90b;
-            color: #000;
-        }
-
-        .channel-logo {
-            width: 30px;
-            height: 30px;
-            object-fit: contain;
-            border-radius: 5px;
-        }
-
-        .channel-name {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .search-box {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 10px 15px;
-            border-radius: 30px;
-            border: none;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            direction: rtl;
-        }
-
-        .search-input::placeholder {
-            color: #aaa;
-        }
-
-        .stats {
-            color: #aaa;
-            font-size: 0.75rem;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #f0b90b;
-            font-size: 0.7rem;
-        }
-
-        @media (max-width: 700px) {
-            .channels-grid {
-                grid-template-columns: 1fr;
+    function parseM3U(content) {
+        const lines = content.split('\n');
+        let currentCh = {};
+        
+        lines.forEach(line => {
+            line = line.trim();
+            if (line.startsWith('#EXTINF:')) {
+                const nameMatch = line.split(',')[1];
+                const groupMatch = line.match(/group-title="([^"]+)"/);
+                const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                
+                currentCh = {
+                    name: nameMatch || "کەناڵی بێ ناو",
+                    group: groupMatch ? groupMatch[1] : "گشتی",
+                    logo: logoMatch ? logoMatch[1] : "https://logo.m3uassets.com/a.png"
+                };
+            } else if (line.startsWith('http')) {
+                currentCh.url = line;
+                allChannels.push(currentCh);
+                currentCh = {};
             }
-            .player-controls {
-                flex-direction: column;
-            }
-            .current-channel {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- پلەیەر -->
-        <div class="player-section">
-            <video id="videoPlayer" controls autoplay></video>
-            <div class="player-controls">
-                <div class="current-channel" id="currentChannel">هیچ کەناڵێک هەڵنەبژێراوە</div>
-                <button class="control-btn" onclick="stopPlayer()">⏹️ ڕاگرتن</button>
-            </div>
-        </div>
-
-        <!-- گروپەکان -->
-        <div class="groups-section" id="groupsContainer"></div>
-
-        <!-- گەڕان -->
-        <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 گەڕان بە ناوی کەناڵ...">
-        </div>
-
-        <!-- لیستی کەناڵەکان -->
-        <div class="channels-section">
-            <div class="channels-grid" id="channelsContainer"></div>
-        </div>
-        <div class="stats" id="stats"></div>
-        <footer>✨ KAMAL PRO ULTRA | IPTV PLAYER ✨</footer>
-    </div>
-
-    <script>
-        // ==================== لیستی کەناڵەکان (لە داتاکەی تۆ) ====================
-        const allChannels = [
-            { name: "KURDISTAN 24", logo: "https://logo.m3uassets.com/kurdistan24.png", group: "KURDISH", url: "https://d1x82nydcxndze.cloudfront.net/live/index_720p25.m3u8" },
-            { name: "KURDISTAN TV", logo: "https://logo.m3uassets.com/kurdistantv.png", group: "KURDISH", url: "https://5a3ed7a72ed4b.streamlock.net/live/SMIL:myStream.smil/chunklist_w1790905875_b1700000_sleng_t64MTA4MHA=.m3u8" },
-            { name: "CHANNEL 8", logo: "https://logo.m3uassets.com/channel8.png", group: "KURDISH", url: "https://live.channel8.com/Channel8-Kurdish/index.fmp4.m3u8" },
-            { name: "SPI TV 4K 2025", logo: "https://logo.m3uassets.com/0.png", group: "KURDISH", url: "https://live20.bozztv.com/giatv/giatv-spitv4k_kamalblbas/spitv4k_kamalblbas/chunks.m3u8" },
-            { name: "ESRA TV 1", logo: "https://logo.m3uassets.com/pesrayatv.png", group: "KURDISH", url: "https://live20.bozztv.com/giatv/giatv-ESRAHD/ESRAHD/chunks.m3u8" },
-            { name: "ESRA TV 2", logo: "https://logo.m3uassets.com/pesrayatv.png", group: "KURDISH", url: "https://live20.bozztv.com/giatv/giatv-esra2hd_kamalblbas/esra2hd_kamalblbas/chunks.m3u8" },
-            { name: "PAYAM TV", logo: "https://logo.m3uassets.com/payamtv.png", group: "KURDISH", url: "https://media2.streambrothers.com:1936/8218/8218/playlist.m3u8" },
-            { name: "AFARIN TV", logo: "https://logo.m3uassets.com/afarintv.png", group: "KURDISH", url: "http://afarintv.flashmediacast.com:1935/afarinTV/livestream/playlist.m3u8" },
-            { name: "ZAGROS TV", logo: "https://logo.m3uassets.com/zagrostv.png", group: "KURDISH", url: "https://5a3ed7a72ed4b.streamlock.net/zagrostv/SMIL:myStream.smil/chunklist_w469474030_b1700000_sleng_t64MTA4MHA=.m3u8" },
-        ];
-
-        // کۆکردنەوەی گروپە تایبەتەکان
-        const groups = [...new Set(allChannels.map(ch => ch.group))];
-
-        let currentGroup = "ALL";
-        let currentChannel = null;
-
-        // نیشاندانی گروپەکان
-        function displayGroups() {
-            const container = document.getElementById('groupsContainer');
-            container.innerHTML = `<button class="group-btn ${currentGroup === 'ALL' ? 'active' : ''}" onclick="filterChannels('ALL')">📺 هەموو کەناڵەکان</button>`;
-            
-            groups.forEach(group => {
-                container.innerHTML += `<button class="group-btn ${currentGroup === group ? 'active' : ''}" onclick="filterChannels('${group}')">📡 ${group}</button>`;
-            });
-        }
-
-        // پاڵاوتن و نیشاندانی کەناڵەکان
-        function filterChannels(group) {
-            currentGroup = group;
-            displayGroups();
-            
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            let filtered = group === 'ALL' ? allChannels : allChannels.filter(ch => ch.group === group);
-            
-            if (searchTerm) {
-                filtered = filtered.filter(ch => ch.name.toLowerCase().includes(searchTerm));
-            }
-            
-            displayChannels(filtered);
-            updateStats(filtered.length);
-        }
-
-        // نیشاندانی کەناڵەکان
-        function displayChannels(channels) {
-            const container = document.getElementById('channelsContainer');
-            container.innerHTML = '';
-            
-            channels.forEach(channel => {
-                const div = document.createElement('div');
-                div.className = 'channel-item';
-                div.onclick = () => playChannel(channel);
-                div.innerHTML = `
-                    <img class="channel-logo" src="${channel.logo}" alt="${channel.name}" onerror="this.src='https://logo.m3uassets.com/a.png'">
-                    <span class="channel-name">${channel.name}</span>
-                `;
-                container.appendChild(div);
-            });
-            
-            if (channels.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px; color:#aaa;">❌ هیچ کەناڵێک نەدۆزرایەوە</div>';
-            }
-        }
-
-        // پەخشکردنی کەناڵ
-        function playChannel(channel) {
-            currentChannel = channel;
-            const video = document.getElementById('videoPlayer');
-            const currentChannelDiv = document.getElementById('currentChannel');
-            
-            video.src = channel.url;
-            video.load();
-            video.play();
-            currentChannelDiv.innerHTML = `🎬 ${channel.name}`;
-            
-            // هێڵکاری چالاک
-            document.querySelectorAll('.channel-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.target.closest('.channel-item')?.classList.add('active');
-        }
-
-        // ڕاگرتنی پلەیەر
-        function stopPlayer() {
-            const video = document.getElementById('videoPlayer');
-            video.pause();
-            video.src = '';
-            document.getElementById('currentChannel').innerHTML = '⏹️ پلەیەر ڕاگیرا';
-        }
-
-        // نوێکردنەوەی ئامار
-        function updateStats(count) {
-            document.getElementById('stats').innerHTML = `📺 ${count} کەناڵ | 🏷️ ${groups.length} گروپ`;
-        }
-
-        // گەڕان
-        document.getElementById('searchInput').addEventListener('keyup', () => {
-            filterChannels(currentGroup);
         });
+        
+        createGroupButtons();
+        loadChannels(allChannels);
+    }
 
-        // دەستپێکردن
-        function init() {
-            displayGroups();
-            filterChannels('ALL');
+    function createGroupButtons() {
+        const groups = ["ALL", ...new Set(allChannels.map(ch => ch.group))];
+        const container = document.getElementById('groupList');
+        container.innerHTML = '';
+        groups.forEach(g => {
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn' + (g === "ALL" ? ' active' : '');
+            btn.innerText = g === "ALL" ? "هەمووی" : g;
+            btn.onclick = (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                filterByGroup(g);
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    function loadChannels(filtered) {
+        const list = document.getElementById('channelList');
+        list.innerHTML = '';
+        filtered.forEach(ch => {
+            const div = document.createElement('div');
+            div.className = 'channel-card';
+            div.innerHTML = `
+                <img src="${ch.logo}" onerror="this.src='https://logo.m3uassets.com/a.png'">
+                <span>${ch.name}</span>
+            `;
+            div.onclick = () => playStream(ch, div);
+            list.appendChild(div);
+        });
+    }
+
+    function playStream(ch, el) {
+        document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('currentChannel').innerText = ch.name;
+
+        if (Hls.isSupported()) {
+            hls.destroy();
+            hls = new Hls();
+            hls.loadSource(ch.url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        } else {
+            video.src = ch.url;
+            video.play();
         }
+    }
 
-        init();
-    </script>
-</body>
-</html>
+    function filterByGroup(group) {
+        if (group === 'ALL') loadChannels(allChannels);
+        else loadChannels(allChannels.filter(c => c.group === group));
+    }
+
+    // دەستپێکردن
+    fetchM3U();
+</script>
