@@ -3,206 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAMAL PRO ULTRA - Luxury IPTV</title>
+    <title>KAMAL PRO ULTRA - Direct Access</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #f0b90b; --bg: #05080a; --card: rgba(255,255,255,0.05); }
-        body { background: #05080a; color: white; font-family: sans-serif; margin: 0; padding: 15px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .player-wrapper { background: #000; border-radius: 15px; overflow: hidden; border: 1px solid var(--primary); margin-bottom: 20px; }
-        video { width: 100%; aspect-ratio: 16/9; }
-        .info { padding: 10px; text-align: center; color: var(--primary); font-weight: bold; }
-        .search-box { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--card); color: white; margin-bottom: 15px; outline: none; }
-        .groups { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; }
-        .group-btn { background: var(--card); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
-        .group-btn.active { background: var(--primary); color: black; }
-        .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-        .channel-card { background: var(--card); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-        .channel-card:hover { border-color: var(--primary); transform: translateY(-3px); }
-        .channel-card.active { background: var(--primary); color: black; }
-        .channel-card img { width: 50px; height: 50px; object-fit: contain; margin-bottom: 5px; background: white; border-radius: 5px; padding: 2px; }
-        .channel-card span { display: block; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .upload-area { background: var(--card); border: 2px dashed var(--primary); border-radius: 15px; padding: 30px; text-align: center; margin-bottom: 20px; }
-        .upload-area input { display: none; }
-        .upload-btn { background: var(--primary); color: black; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; border: none; font-size: 1rem; }
-        .upload-btn:hover { opacity: 0.9; }
-        .hidden { display: none !important; }
-        .loading { text-align: center; padding: 20px; color: var(--primary); }
-        .source-toggle { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
-        .source-btn { background: var(--card); color: white; border: 1px solid var(--primary); padding: 8px 20px; border-radius: 20px; cursor: pointer; }
-        .source-btn.active { background: var(--primary); color: black; }
+        :root { --primary: #f0b90b; --bg: #05080a; --sidebar: #0d1117; --border: #1f2937; --card: rgba(255,255,255,0.05); }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; height: 100vh; overflow: hidden; }
+        
+        /* لابردنی شاشەی پاسۆرد و نیشاندانی ئەپەکە ڕاستەوخۆ */
+        .wrapper { display: flex; height: 100vh; }
+
+        .col-groups { width: 240px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        .col-channels { width: 320px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        .col-player { flex: 1; background: #000; display: flex; flex-direction: column; padding: 25px; align-items: center; justify-content: center; }
+
+        .header { padding: 18px; font-size: 0.95rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border); text-align: center; background: #161b22; }
+        .scrollable { flex: 1; overflow-y: auto; padding: 12px; }
+        .search-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #161b22; color: white; outline: none; box-sizing: border-box; }
+
+        .group-btn { width: 100%; padding: 14px; background: var(--card); border: none; color: #bbb; cursor: pointer; text-align: right; border-radius: 8px; margin-bottom: 6px; font-size: 0.85rem; transition: 0.2s; }
+        .group-btn.active { background: var(--primary); color: black; font-weight: bold; }
+        
+        .chan-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--card); border-radius: 10px; cursor: pointer; margin-bottom: 8px; border: 1px solid transparent; transition: 0.2s; }
+        .chan-card:hover { background: rgba(255,255,255,0.08); }
+        .chan-card.active { border-color: var(--primary); background: rgba(240,185,11,0.12); }
+        .chan-card img { width: 45px; height: 45px; object-fit: contain; background: white; border-radius: 6px; padding: 3px; }
+
+        .vid-container { width: 100%; max-width: 1100px; background: #000; border-radius: 15px; overflow: hidden; border: 1px solid #222; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        video { width: 100%; aspect-ratio: 16/9; display: block; }
+        .now-playing { margin-top: 20px; color: var(--primary); font-size: 1.3rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #2a2f38; border-radius: 10px; }
+        
+        .loading-text { text-align: center; padding-top: 50px; color: var(--primary); font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="player-wrapper">
-        <video id="videoPlayer" controls autoplay></video>
-        <div class="info" id="currentChannel">بارکردنی کەناڵەکان...</div>
+<div class="wrapper">
+    <div class="col-groups">
+        <div class="header">📁 گرووپەکان</div>
+        <div class="scrollable" id="gList">
+            <div class="loading-text">⏳ کەمێک چاوەڕێ بکە...</div>
+        </div>
     </div>
 
-    <div class="source-toggle" id="sourceToggle">
-        <button class="source-btn active" onclick="loadFromURL()">🌐 لینکی سێرڤەر</button>
-        <button class="source-btn" onclick="showUpload()">📁 فایلی ناوخۆیی</button>
+    <div class="col-channels">
+        <div class="header">📺 کەناڵەکان</div>
+        <div style="padding:15px;"><input type="text" id="search" class="search-input" placeholder="گەڕان بۆ کەناڵ..."></div>
+        <div class="scrollable" id="cList"></div>
     </div>
 
-    <div class="upload-area hidden" id="uploadArea">
-        <p>فایلی <code>.m3u</code> یان <code>.m3u8</code> هەڵبژێرە</p><br>
-        <input type="file" id="fileInput" accept=".m3u,.m3u8">
-        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📁 هەڵبژاردنی فایل</button>
-        <p style="margin-top:15px; font-size:0.8rem; color:#888;">یان فایلەکە ڕابکێشە ئێرە</p>
-    </div>
-
-    <div id="appContent">
-        <div class="loading" id="loadingMsg">⏳ بارکردنی کەناڵەکان لە سێرڤەر...</div>
-        <div class="groups" id="groupList"></div>
-        <input type="text" id="searchBox" class="search-box" placeholder="گەڕان بۆ کەناڵ...">
-        <div class="channel-grid" id="channelList"></div>
+    <div class="col-player">
+        <div class="vid-container">
+            <video id="player" controls autoplay></video>
+        </div>
+        <div class="now-playing" id="curTitle">KAMAL PRO ULTRA</div>
+        <div id="count" style="color:#444; margin-top:10px; font-size:0.8rem;"></div>
     </div>
 </div>
 
 <script>
-    const video = document.getElementById('videoPlayer');
+    // لینکە شاردراوەکە (بۆ ئەوەی بە چاو نەدۆزرێتەوە)
+    const _0xkey = "aHR0cHM6Ly94dHJlYW0taWUubmV0L2dldC5waHA/dXNlcm5hbWU9aXB0djIwMjYmcGFzc3dvcmQ9aXB0djIwMjYmdHlwZT1tM3VfcGx1cw==";
+    
+    let allData = [];
+    const video = document.getElementById('player');
     let hls = new Hls();
-    let allChannels = [];
 
-    // ===== لینکی سێرڤەری سەرەکی =====
-    const M3U_URL = 'https://xtream-ie.net/get.php?username=iptv2026&password=iptv2026&type=m3u_plus';
-
-    // بارکردن لە لینکی سێرڤەر
-    async function loadFromURL() {
-        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.source-btn')[0].classList.add('active');
-        document.getElementById('uploadArea').classList.add('hidden');
-        document.getElementById('loadingMsg').classList.remove('hidden');
-        document.getElementById('groupList').innerHTML = '';
-        document.getElementById('channelList').innerHTML = '';
-        document.getElementById('currentChannel').innerText = 'بارکردنی کەناڵەکان...';
-
+    // فەرمانی بارکردن ڕاستەوخۆ دەست پێ دەکات
+    async function loadData() {
         try {
-            const response = await fetch(M3U_URL);
-            if (!response.ok) throw new Error('سێرڤەر وەڵام نەدایەوە');
-            const data = await response.text();
-            parseM3U(data);
-            document.getElementById('loadingMsg').classList.add('hidden');
-            document.getElementById('currentChannel').innerText = '✅ ' + allChannels.length + ' کەناڵ بارکرا';
-        } catch (err) {
-            console.error(err);
-            document.getElementById('loadingMsg').classList.add('hidden');
-            document.getElementById('currentChannel').innerText = '❌ هەڵە: ' + err.message;
-            alert('ناتوانم لە لینکی سێرڤەرەوە بار بکەم.\n\nدەتەوێت فایلی ناوخۆیی بەکاربهێنیت؟\n\nتێبینی: لەوانەیە CORS قەدەغەی کردبێت، سێرڤەری ناوخۆیی (Local Server) بەکاربهێنە.');
+            const r = await fetch(atob(_0xkey));
+            const t = await r.text();
+            const lines = t.split('\n');
+            let item = {};
+            lines.forEach(l => {
+                if(l.startsWith('#EXTINF:')) {
+                    item.name = l.split(',')[1] || "Unnamed";
+                    const g = l.match(/group-title="([^"]+)"/i);
+                    const i = l.match(/tvg-logo="([^"]+)"/i);
+                    item.group = g ? g[1] : "General";
+                    item.logo = (i && i[1]) ? i[1] : "";
+                } else if(l.startsWith('http')) {
+                    item.url = l.trim();
+                    allData.push(item);
+                    item = {};
+                }
+            });
+            document.getElementById('count').innerText = "Total Channels: " + allData.length;
+            renderGroups();
+            renderChans(allData);
+        } catch(e) { 
+            document.getElementById('gList').innerHTML = '<div style="color:red; text-align:center;">⚠️ هەڵە لە پەیوەندی سێرڤەر!</div>';
         }
-    }
-
-    // پیشاندانی بەشی فایل
-    function showUpload() {
-        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.source-btn')[1].classList.add('active');
-        document.getElementById('uploadArea').classList.remove('hidden');
-        document.getElementById('loadingMsg').classList.add('hidden');
-    }
-
-    // ڕاکێشانی فایل (Drag & Drop)
-    const uploadArea = document.getElementById('uploadArea');
-    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = '#fff'; });
-    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'var(--primary)'; });
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'var(--primary)';
-        const file = e.dataTransfer.files[0];
-        if (file && (file.name.endsWith('.m3u') || file.name.endsWith('.m3u8'))) {
-            readFile(file);
-        }
-    });
-
-    document.getElementById('fileInput').addEventListener('change', (e) => {
-        if (e.target.files[0]) readFile(e.target.files[0]);
-    });
-
-    function readFile(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            parseM3U(e.target.result);
-            document.getElementById('uploadArea').classList.add('hidden');
-            document.getElementById('currentChannel').innerText = "✅ فایلەکە بارکرا - " + allChannels.length + " کەناڵ";
-        };
-        reader.readAsText(file);
-    }
-
-    function parseM3U(content) {
-        const lines = content.split('\n');
-        let currentCh = {};
-        allChannels = [];
-
-        lines.forEach(line => {
-            line = line.trim();
-            if (line.startsWith('#EXTINF:')) {
-                const name = line.split(',')[1] || "کەناڵی بێ ناو";
-                const group = line.match(/group-title="([^"]+)"/i);
-                const logo = line.match(/tvg-logo="([^"]+)"/i);
-                currentCh = {
-                    name: name,
-                    group: group ? group[1] : "گشتی",
-                    logo: logo ? logo[1] : "https://logo.m3uassets.com/a.png"
-                };
-            } else if (line.startsWith('http')) {
-                currentCh.url = line;
-                allChannels.push(currentCh);
-                currentCh = {};
-            }
-        });
-        renderGroups();
-        renderChannels(allChannels);
     }
 
     function renderGroups() {
-        const groups = ["هەمووی", ...new Set(allChannels.map(ch => ch.group))];
-        const container = document.getElementById('groupList');
-        container.innerHTML = groups.map((g, index) => 
-            `<button class="group-btn ${index === 0 ? 'active' : ''}" onclick="filterByGroup('${g}', this)">${g}</button>`
+        const gs = ["هەمووی", ...new Set(allData.map(x => x.group))];
+        document.getElementById('gList').innerHTML = gs.map((g,i) => 
+            `<button class="group-btn ${i===0?'active':''}" onclick="filter('${g}', this)">${g}</button>`
         ).join('');
     }
 
-    function renderChannels(list) {
-        const container = document.getElementById('channelList');
-        container.innerHTML = list.map(ch => `
-            <div class="channel-card" onclick="playStream('${ch.url}', '${ch.name}', this)">
-                <img src="${ch.logo}" onerror="this.src='https://logo.m3uassets.com/a.png'">
-                <span>${ch.name}</span>
-            </div>
-        `).join('');
+    function renderChans(list) {
+        document.getElementById('cList').innerHTML = list.map(x => {
+            // ئەگەر لۆگۆی نەبوو، لۆگۆیەکی جوان بە ناوی کەناڵەکە دروست دەکات
+            const logoUrl = (x.logo && x.logo.startsWith('http')) 
+                ? x.logo 
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=f0b90b&color=000&size=128&bold=true`;
+
+            return `
+                <div class="chan-card" onclick="play('${x.url}', '${x.name}', this)">
+                    <img src="${logoUrl}" onerror="this.src='https://via.placeholder.com/50/0d1117/f0b90b?text=${x.name[0]}'">
+                    <span style="font-size:0.85rem;">${x.name}</span>
+                </div>
+            `;
+        }).join('');
     }
 
-    function playStream(url, name, el) {
-        document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
+    function filter(g, btn) {
+        document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderChans(g === "هەمووی" ? allData : allData.filter(x => x.group === g));
+    }
+
+    function play(u, n, el) {
+        document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
-        document.getElementById('currentChannel').innerText = name;
-        if (Hls.isSupported()) {
+        document.getElementById('curTitle').innerText = n;
+        if(Hls.isSupported()) {
             hls.destroy();
             hls = new Hls();
-            hls.loadSource(url);
+            hls.loadSource(u);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
+        } else {
+            video.src = u;
             video.play();
         }
     }
 
-    function filterByGroup(group, btn) {
-        document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filtered = group === "هەمووی" ? allChannels : allChannels.filter(ch => ch.group === group);
-        renderChannels(filtered);
-    }
-
-    document.getElementById('searchBox').oninput = (e) => {
-        const val = e.target.value.toLowerCase();
-        renderChannels(allChannels.filter(ch => ch.name.toLowerCase().includes(val)));
+    document.getElementById('search').oninput = (e) => {
+        const v = e.target.value.toLowerCase();
+        renderChans(allData.filter(x => x.name.toLowerCase().includes(v)));
     };
 
-    // دەستپێکردن - هەوڵدان بۆ بارکردن لە لینکی سێرڤەر
-    loadFromURL();
+    // لێرەدا بانگی فەرمانی بارکردن دەکەین بێ ئەوەی داوای پاسۆرد بکات
+    loadData();
 </script>
 </body>
 </html>
