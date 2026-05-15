@@ -3,154 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAMAL PRO ULTRA - Direct Access</title>
+    <title>KAMAL PRO ULTRA</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #f0b90b; --bg: #05080a; --sidebar: #0d1117; --border: #1f2937; --card: rgba(255,255,255,0.05); }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; height: 100vh; overflow: hidden; }
+        :root { --primary: #f0b90b; --bg: #05080a; --sidebar: #0d1117; --border: #1f2937; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         
-        /* لابردنی شاشەی پاسۆرد و نیشاندانی ئەپەکە ڕاستەوخۆ */
-        .wrapper { display: flex; height: 100vh; }
+        /* ستایلی شاشەی چات/سڵاو */
+        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        .chat-box { background: var(--sidebar); padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center; width: 350px; box-shadow: 0 0 30px rgba(240,185,11,0.1); }
+        .message { margin: 15px 0; padding: 10px; border-radius: 10px; font-size: 0.95rem; line-height: 1.6; }
+        .ai-msg { background: rgba(240,185,11,0.1); color: var(--primary); border: 1px solid rgba(240,185,11,0.2); }
+        .input-area { display: flex; gap: 10px; margin-top: 20px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #0b0e14; color: white; outline: none; text-align: center; }
+        button { background: var(--primary); color: black; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        .col-groups { width: 240px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
-        .col-channels { width: 320px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
-        .col-player { flex: 1; background: #000; display: flex; flex-direction: column; padding: 25px; align-items: center; justify-content: center; }
-
-        .header { padding: 18px; font-size: 0.95rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border); text-align: center; background: #161b22; }
-        .scrollable { flex: 1; overflow-y: auto; padding: 12px; }
-        .search-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #161b22; color: white; outline: none; box-sizing: border-box; }
-
-        .group-btn { width: 100%; padding: 14px; background: var(--card); border: none; color: #bbb; cursor: pointer; text-align: right; border-radius: 8px; margin-bottom: 6px; font-size: 0.85rem; transition: 0.2s; }
-        .group-btn.active { background: var(--primary); color: black; font-weight: bold; }
-        
-        .chan-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--card); border-radius: 10px; cursor: pointer; margin-bottom: 8px; border: 1px solid transparent; transition: 0.2s; }
-        .chan-card:hover { background: rgba(255,255,255,0.08); }
-        .chan-card.active { border-color: var(--primary); background: rgba(240,185,11,0.12); }
-        .chan-card img { width: 45px; height: 45px; object-fit: contain; background: white; border-radius: 6px; padding: 3px; }
-
-        .vid-container { width: 100%; max-width: 1100px; background: #000; border-radius: 15px; overflow: hidden; border: 1px solid #222; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-        video { width: 100%; aspect-ratio: 16/9; display: block; }
-        .now-playing { margin-top: 20px; color: var(--primary); font-size: 1.3rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #2a2f38; border-radius: 10px; }
-        
-        .loading-text { text-align: center; padding-top: 50px; color: var(--primary); font-size: 0.9rem; }
+        .wrapper { display: none; height: 100vh; }
+        .wrapper.active { display: flex; }
+        /* ستایلی بەشەکانی ناوەوە وەک پێشتر */
+        .col-groups { width: 220px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        .col-channels { width: 300px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        .col-player { flex: 1; background: #000; display: flex; flex-direction: column; padding: 20px; justify-content: center; align-items: center; }
+        .header { padding: 15px; font-size: 0.9rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border); text-align: center; }
+        .scrollable { flex: 1; overflow-y: auto; padding: 10px; }
+        .group-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: none; color: #bbb; cursor: pointer; text-align: right; border-radius: 6px; margin-bottom: 5px; }
+        .chan-card { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; margin-bottom: 6px; }
+        .chan-card img { width: 40px; height: 40px; object-fit: contain; background: white; border-radius: 4px; }
+        video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <div class="col-groups">
-        <div class="header">📁 گرووپەکان</div>
-        <div class="scrollable" id="gList">
-            <div class="loading-text">⏳ کەمێک چاوەڕێ بکە...</div>
+<div id="authOverlay">
+    <div class="chat-box" id="chatBox">
+        <h2 style="color:var(--primary); margin-bottom:5px;">KAMAL PRO</h2>
+        <p style="font-size:0.8rem; color:#666; margin-bottom:20px;">بەخێربێیت بۆ سێرڤەری تایبەتی</p>
+        
+        <div id="aiResponse" class="message ai-msg">تکایە سڵاو بکە بۆ دەستپێکردن...</div>
+        
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="لێرە بنووسە...">
+            <button onclick="handleLogic()">ناردن</button>
         </div>
     </div>
+</div>
 
-    <div class="col-channels">
-        <div class="header">📺 کەناڵەکان</div>
-        <div style="padding:15px;"><input type="text" id="search" class="search-input" placeholder="گەڕان بۆ کەناڵ..."></div>
-        <div class="scrollable" id="cList"></div>
-    </div>
-
+<div class="wrapper" id="mainApp">
+    <div class="col-groups"><div class="header">📁 گرووپەکان</div><div class="scrollable" id="gList"></div></div>
+    <div class="col-channels"><div class="header">📺 کەناڵەکان</div><div class="scrollable" id="cList"></div></div>
     <div class="col-player">
-        <div class="vid-container">
-            <video id="player" controls autoplay></video>
-        </div>
-        <div class="now-playing" id="curTitle">KAMAL PRO ULTRA</div>
-        <div id="count" style="color:#444; margin-top:10px; font-size:0.8rem;"></div>
+        <video id="player" controls autoplay></video>
+        <div id="title" style="margin-top:15px; color:var(--primary); font-weight:bold; font-size:1.2rem;">KAMAL PRO ULTRA</div>
     </div>
 </div>
 
 <script>
-    // لینکە شاردراوەکە (بۆ ئەوەی بە چاو نەدۆزرێتەوە)
-    const _0xkey = "aHR0cHM6Ly94dHJlYW0taWUubmV0L2dldC5waHA/dXNlcm5hbWU9aXB0djIwMjYmcGFzc3dvcmQ9aXB0djIwMjYmdHlwZT1tM3VfcGx1cw==";
-    
+    let step = 1; // هەنگاوی یەکەم: سڵاو، هەنگاوی دووەم: بسم الله
+    const _URL = "aHR0cHM6Ly94dHJlYW0taWUubmV0L2dldC5waHA/dXNlcm5hbWU9aXB0djIwMjYmcGFzc3dvcmQ9aXB0djIwMjYmdHlwZT1tM3VfcGx1cw==";
     let allData = [];
     const video = document.getElementById('player');
     let hls = new Hls();
 
-    // فەرمانی بارکردن ڕاستەوخۆ دەست پێ دەکات
-    async function loadData() {
-        try {
-            const r = await fetch(atob(_0xkey));
-            const t = await r.text();
-            const lines = t.split('\n');
-            let item = {};
-            lines.forEach(l => {
-                if(l.startsWith('#EXTINF:')) {
-                    item.name = l.split(',')[1] || "Unnamed";
-                    const g = l.match(/group-title="([^"]+)"/i);
-                    const i = l.match(/tvg-logo="([^"]+)"/i);
-                    item.group = g ? g[1] : "General";
-                    item.logo = (i && i[1]) ? i[1] : "";
-                } else if(l.startsWith('http')) {
-                    item.url = l.trim();
-                    allData.push(item);
-                    item = {};
-                }
-            });
-            document.getElementById('count').innerText = "Total Channels: " + allData.length;
-            renderGroups();
-            renderChans(allData);
-        } catch(e) { 
-            document.getElementById('gList').innerHTML = '<div style="color:red; text-align:center;">⚠️ هەڵە لە پەیوەندی سێرڤەر!</div>';
+    function handleLogic() {
+        const input = document.getElementById('userInput').value.trim();
+        const responseBox = document.getElementById('aiResponse');
+        const inputField = document.getElementById('userInput');
+
+        if (step === 1) {
+            // پشکنینی سڵاو
+            if (input.includes("السلام عليكم") || input.includes("سلام") || input.includes("سڵاو")) {
+                responseBox.innerText = "وعليكم السلام ورحمة الله وبركاته، ئێستا بنووسە: بسم الله";
+                inputField.value = "";
+                inputField.placeholder = "بسم الله...";
+                step = 2;
+            } else {
+                responseBox.innerText = "تکایە سەرەتا سڵاو بکە (السلام عليكم)";
+            }
+        } 
+        else if (step === 2) {
+            // پشکنینی بسم الله
+            if (input.includes("بسم الله")) {
+                responseBox.innerText = "ماشاء الله... کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان";
+                setTimeout(showApp, 1000);
+            } else {
+                responseBox.innerText = "تکایە بنووسە: بسم الله";
+            }
         }
     }
 
-    function renderGroups() {
-        const gs = ["هەمووی", ...new Set(allData.map(x => x.group))];
-        document.getElementById('gList').innerHTML = gs.map((g,i) => 
-            `<button class="group-btn ${i===0?'active':''}" onclick="filter('${g}', this)">${g}</button>`
-        ).join('');
+    function showApp() {
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('mainApp').classList.add('active');
+        startLoading();
     }
 
-    function renderChans(list) {
-        document.getElementById('cList').innerHTML = list.map(x => {
-            // ئەگەر لۆگۆی نەبوو، لۆگۆیەکی جوان بە ناوی کەناڵەکە دروست دەکات
-            const logoUrl = (x.logo && x.logo.startsWith('http')) 
-                ? x.logo 
-                : `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=f0b90b&color=000&size=128&bold=true`;
+    async function startLoading() {
+        try {
+            const r = await fetch(atob(_URL));
+            const d = await r.text();
+            parseM3U(d);
+        } catch(e) { console.log("Error"); }
+    }
 
-            return `
-                <div class="chan-card" onclick="play('${x.url}', '${x.name}', this)">
-                    <img src="${logoUrl}" onerror="this.src='https://via.placeholder.com/50/0d1117/f0b90b?text=${x.name[0]}'">
-                    <span style="font-size:0.85rem;">${x.name}</span>
-                </div>
-            `;
+    function parseM3U(data) {
+        const lines = data.split('\n');
+        let obj = {};
+        lines.forEach(l => {
+            if(l.startsWith('#EXTINF:')) {
+                obj.name = l.split(',')[1] || "Channel";
+                const g = l.match(/group-title="([^"]+)"/i);
+                const i = l.match(/tvg-logo="([^"]+)"/i);
+                obj.group = g ? g[1] : "General";
+                obj.logo = i ? i[1] : "";
+            } else if(l.startsWith('http')) {
+                obj.url = l.trim();
+                allData.push(obj);
+                obj = {};
+            }
+        });
+        renderG();
+        renderC(allData);
+    }
+
+    function renderG() {
+        const gs = ["هەمووی", ...new Set(allData.map(x => x.group))];
+        document.getElementById('gList').innerHTML = gs.map(g => `<button class="group-btn" onclick="filter('${g}')">${g}</button>`).join('');
+    }
+
+    function renderC(list) {
+        document.getElementById('cList').innerHTML = list.map(x => {
+            const img = (x.logo) ? x.logo : `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=f0b90b&color=000&bold=true`;
+            return `<div class="chan-card" onclick="play('${x.url}', '${x.name}')"><img src="${img}"><span>${x.name}</span></div>`;
         }).join('');
     }
 
-    function filter(g, btn) {
-        document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderChans(g === "هەمووی" ? allData : allData.filter(x => x.group === g));
+    function play(u, n) {
+        document.getElementById('title').innerText = n;
+        if(Hls.isSupported()) { hls.destroy(); hls = new Hls(); hls.loadSource(u); hls.attachMedia(video); hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play()); }
+        else { video.src = u; video.play(); }
     }
 
-    function play(u, n, el) {
-        document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('curTitle').innerText = n;
-        if(Hls.isSupported()) {
-            hls.destroy();
-            hls = new Hls();
-            hls.loadSource(u);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else {
-            video.src = u;
-            video.play();
-        }
+    function filter(g) {
+        renderC(g === "هەمووی" ? allData : allData.filter(x => x.group === g));
     }
-
-    document.getElementById('search').oninput = (e) => {
-        const v = e.target.value.toLowerCase();
-        renderChans(allData.filter(x => x.name.toLowerCase().includes(v)));
-    };
-
-    // لێرەدا بانگی فەرمانی بارکردن دەکەین بێ ئەوەی داوای پاسۆرد بکات
-    loadData();
 </script>
 </body>
 </html>
