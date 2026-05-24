@@ -9,43 +9,38 @@
         :root { --primary: #f0b90b; --bg: #05080a; --sidebar: #0d1117; --border: #1f2937; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         
-        /* ستایلی شاشەی چات/سڵاو */
-        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
-        .chat-box { background: var(--sidebar); padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center; width: 350px; box-shadow: 0 0 30px rgba(240,185,11,0.1); }
-        .message { margin: 15px 0; padding: 10px; border-radius: 10px; font-size: 0.95rem; line-height: 1.6; }
-        .ai-msg { background: rgba(240,185,11,0.1); color: var(--primary); border: 1px solid rgba(240,185,11,0.2); }
-        .input-area { display: flex; gap: 10px; margin-top: 20px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #0b0e14; color: white; outline: none; text-align: center; }
-        button { background: var(--primary); color: black; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        /* شاشەی بارکردنی سەرەتا */
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 50px; height: 50px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .wrapper { display: none; height: 100vh; }
-        .wrapper.active { display: flex; }
-        /* ستایلی بەشەکانی ناوەوە وەک پێشتر */
+        .wrapper { display: flex; height: 100vh; }
+        
+        /* دیزاینی بەشەکان */
         .col-groups { width: 220px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
         .col-channels { width: 300px; background: var(--sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
         .col-player { flex: 1; background: #000; display: flex; flex-direction: column; padding: 20px; justify-content: center; align-items: center; }
         .header { padding: 15px; font-size: 0.9rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border); text-align: center; }
         .scrollable { flex: 1; overflow-y: auto; padding: 10px; }
-        .group-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: none; color: #bbb; cursor: pointer; text-align: right; border-radius: 6px; margin-bottom: 5px; }
-        .chan-card { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; margin-bottom: 6px; }
+        .group-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: none; color: #bbb; cursor: pointer; text-align: right; border-radius: 6px; margin-bottom: 5px; transition: 0.2s; }
+        .group-btn:hover { background: rgba(240,185,11,0.2); color: white; }
+        .chan-card { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; margin-bottom: 6px; transition: 0.2s; }
+        .chan-card:hover { background: rgba(255,255,255,0.1); }
         .chan-card img { width: 40px; height: 40px; object-fit: contain; background: white; border-radius: 4px; }
-        video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; }
+        video { width: 100%; max-width: 800px; aspect-ratio: 16/9; border-radius: 12px; border: 1px solid var(--border); }
+        
+        @media (max-width: 768px) {
+            .wrapper { flex-direction: column; overflow-y: auto; }
+            .col-groups, .col-channels { width: 100%; height: 200px; }
+        }
     </style>
 </head>
 <body>
 
-<div id="authOverlay">
-    <div class="chat-box" id="chatBox">
-        <h2 style="color:var(--primary); margin-bottom:5px;">KAMAL PRO</h2>
-        <p style="font-size:0.8rem; color:#666; margin-bottom:20px;">بەخێربێیت بۆ سێرڤەری تایبەتی</p>
-        
-        <div id="aiResponse" class="message ai-msg">تکایە سڵاو بکە بۆ دەستپێکردن...</div>
-        
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="لێرە بنووسە...">
-            <button onclick="handleLogic()">ناردن</button>
-        </div>
-    </div>
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <h2 style="color:var(--primary); margin-top:20px;">KAMAL PRO</h2>
+    <p style="font-size:0.8rem; color:#666;">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان...</p>
 </div>
 
 <div class="wrapper" id="mainApp">
@@ -58,56 +53,34 @@
 </div>
 
 <script>
-    let step = 1; // هەنگاوی یەکەم: سڵاو، هەنگاوی دووەم: بسم الله
     const _URL = "aHR0cHM6Ly94dHJlYW0taWUubmV0L2dldC5waHA/dXNlcm5hbWU9aXB0djIwMjYmcGFzc3dvcmQ9aXB0djIwMjYmdHlwZT1tM3VfcGx1cw==";
     let allData = [];
     const video = document.getElementById('player');
     let hls = new Hls();
 
-    function handleLogic() {
-        const input = document.getElementById('userInput').value.trim();
-        const responseBox = document.getElementById('aiResponse');
-        const inputField = document.getElementById('userInput');
-
-        if (step === 1) {
-            // پشکنینی سڵاو
-            if (input.includes("السلام عليكم") || input.includes("سلام") || input.includes("سڵاو")) {
-                responseBox.innerText = "وعليكم السلام ورحمة الله وبركاته، ئێستا بنووسە: بسم الله";
-                inputField.value = "";
-                inputField.placeholder = "بسم الله...";
-                step = 2;
-            } else {
-                responseBox.innerText = "تکایە سەرەتا سڵاو بکە (السلام عليكم)";
-            }
-        } 
-        else if (step === 2) {
-            // پشکنینی بسم الله
-            if (input.includes("بسم الله")) {
-                responseBox.innerText = "ماشاء الله... کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان";
-                setTimeout(showApp, 1000);
-            } else {
-                responseBox.innerText = "تکایە بنووسە: بسم الله";
-            }
-        }
-    }
-
-    function showApp() {
-        document.getElementById('authOverlay').style.display = 'none';
-        document.getElementById('mainApp').classList.add('active');
+    // ڕاستەوخۆ کاتێک لاپەڕەکە دەبێتەوە دەست دەکات بە هێنانی کەناڵەکان
+    window.onload = function() {
         startLoading();
-    }
+    };
 
     async function startLoading() {
         try {
             const r = await fetch(atob(_URL));
             const d = await r.text();
             parseM3U(d);
-        } catch(e) { console.log("Error"); }
+            // لادانی شاشەی چاوەڕوانی دوای سەرکەوتنی پرۆسەکە
+            document.getElementById('loadingOverlay').style.display = 'none';
+        } catch(e) { 
+            console.log("Error loading M3U"); 
+            document.getElementById('loadingOverlay').innerHTML = "<h3 style='color:red;'>خەتایەک لە هێنانەوەی کەناڵەکان هەیە!</h3>";
+        }
     }
 
     function parseM3U(data) {
         const lines = data.split('\n');
         let obj = {};
+        allData = []; 
+        
         lines.forEach(l => {
             if(l.startsWith('#EXTINF:')) {
                 obj.name = l.split(',')[1] || "Channel";
@@ -139,8 +112,17 @@
 
     function play(u, n) {
         document.getElementById('title').innerText = n;
-        if(Hls.isSupported()) { hls.destroy(); hls = new Hls(); hls.loadSource(u); hls.attachMedia(video); hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play()); }
-        else { video.src = u; video.play(); }
+        if(Hls.isSupported()) { 
+            hls.destroy(); 
+            hls = new Hls(); 
+            hls.loadSource(u); 
+            hls.attachMedia(video); 
+            hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play()); 
+        }
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
+            video.src = u; 
+            video.play(); 
+        }
     }
 
     function filter(g) {
