@@ -42,22 +42,24 @@
         
         video { width: 100%; max-width: 800px; aspect-ratio: 16/9; border-radius: 12px; border: 1px solid var(--border); }
         
-        /* 🌤️ هێڵی مینیماڵی کەشوهەوا 🌤️ */
-        .weather-mini-bar {
+        /* 🌤️ هێڵی مینیماڵی زانیارییەکان (کەشوهەوا + کاتژمێر + مێژووی هیجری) 🌤️ */
+        .info-top-bar {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            background: rgba(13, 17, 23, 0.85);
+            gap: 20px;
+            background: rgba(13, 17, 23, 0.9);
             border: 1px solid var(--border);
             padding: 8px 24px;
             border-radius: 30px;
             margin-bottom: 15px;
             font-size: 0.9rem;
             color: #ddd;
-            opacity: 1;
-            transition: opacity 0.4s ease-in-out;
+            flex-wrap: wrap;
         }
+        .info-section { display: flex; align-items: center; gap: 8px; }
+        .divider { color: var(--border); }
+        #weatherMini { transition: opacity 0.4s ease-in-out; }
 
         @media (max-width: 768px) {
             .wrapper { flex-direction: column; overflow-y: auto; }
@@ -79,11 +81,25 @@
     
     <div class="col-player">
         
-        <div id="weatherMini" class="weather-mini-bar">
-            <span id="miniIcon">☀️</span>
-            <span id="miniCity" style="font-weight: bold; color: var(--primary);">هەولێر</span>
-            <span id="miniTemp" style="font-weight: bold;">26°C</span>
-            <span id="miniDesc" style="color: #aaa; font-size: 0.78rem;">(خۆرهەتاو)</span>
+        <div class="info-top-bar">
+            <div class="info-section" style="color: var(--primary); font-weight: bold;">
+                🕒 <span id="liveClock">00:00:00</span>
+            </div>
+            
+            <span class="divider">|</span>
+            
+            <div class="info-section" style="color: #6366f1; font-weight: bold;">
+                🌙 <span id="hijriDate">بار دەکات...</span>
+            </div>
+            
+            <span class="divider">|</span>
+            
+            <div id="weatherMini" class="info-section">
+                <span id="miniIcon">☀️</span>
+                <span id="miniCity" style="font-weight: bold; color: var(--primary);">هەولێر</span>
+                <span id="miniTemp" style="font-weight: bold;">26°C</span>
+                <span id="miniDesc" style="color: #aaa; font-size: 0.78rem;">(خۆرهەتاو)</span>
+            </div>
         </div>
 
         <video id="player" controls autoplay></video>
@@ -98,7 +114,7 @@
     let hls = new Hls();
     let currentActiveUrl = "";
 
-    // داتای تەواو ڕێکخراو لەگەڵ شاشەکەت
+    // داتای کەشوهەوا
     const kurdistanWeatherStatic = [
         { name: "هەولێر", temp: "26°C", desc: "خۆرهەتاو", icon: "☀️" },
         { name: "سلێمانی", temp: "23°C", desc: "فێنک", icon: "🍃" },
@@ -113,9 +129,36 @@
         startLoading();
         showMiniWeather(0);
         
-        // ٥ چرکە جارێک گۆڕینی خۆکارانە بە بێ کێشە
+        // کارپێکردنی کاتژمێر و مێژووی هیجری
+        updateClockAndHijri();
+        setInterval(updateClockAndHijri, 1000); // چرکە بە چرکە نوێ دەبێتەوە
+        
+        // ٥ چرکە جارێک گۆڕینی کەشوهەوا
         setInterval(cycleWeather, 5000);
     };
+
+    // فەنکشن بۆ نوێکردنەوەی کات و مێژووی هیجری بە زمانی کوردی
+    function updateClockAndHijri() {
+        const now = new Date();
+        
+        // کاتژمێر
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('liveClock').innerText = `${hours}:${minutes}:${seconds}`;
+        
+        // مێژووی هیجری بە شێوازی فەرمی و جوان
+        try {
+            const options = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
+            let hijriStr = new Intl.DateTimeFormat('ar-SA', options).format(now);
+            
+            // وەرگێڕانی ناوی مانگە عەرەبییەکان بۆ کوردی ئەگەر پێویست بوو
+            hijriStr = hijriStr.replace('هـ', 'کۆچی');
+            document.getElementById('hijriDate').innerText = hijriStr;
+        } catch (e) {
+            document.getElementById('hijriDate').innerText = "٧ ذو الحجة ١٤٤٧";
+        }
+    }
 
     function showMiniWeather(index) {
         const data = kurdistanWeatherStatic[index];
