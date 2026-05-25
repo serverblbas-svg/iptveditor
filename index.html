@@ -74,7 +74,7 @@
             transition: opacity 0.4s ease-in-out;
         }
         .phone-temp { font-size: 1.3rem; font-weight: bold; color: var(--primary); }
-        .phone-city-details { display: flex; flex-direction: column; font-size: 0.8rem; }
+        .phone-city-details { display: flex; flex-direction: column; font-size: 0.8rem; text-align: right; }
 
         @media (max-width: 768px) {
             .wrapper { flex-direction: column; overflow-y: auto; }
@@ -107,9 +107,9 @@
                 <span id="pIcon" style="font-size: 1.4rem;">☀️</span>
                 <div class="phone-city-details">
                     <span id="pCity" style="font-weight: bold; color: #fff;">هەولێر</span>
-                    <span id="pDesc" style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">خۆرهەتاو</span>
+                    <span id="pDesc" style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">Clear Sky</span>
                 </div>
-                <span id="pTemp" class="phone-temp">26°C</span>
+                <span id="pTemp" class="phone-temp">--°C</span>
             </div>
         </div>
 
@@ -119,92 +119,87 @@
 </div>
 
 <script>
-    // لێرەدا بەستەرەکە بە تەواوی بۆ فۆرماتی دروستی خۆی (iptv2026) چاککراوەتەوە
     const _URL = "aHR0cHM6Ly94dHJlYW0taWUubmV0L2dldC5waHA/dXNlcm5hbWU9aXB0djIwMjYmcGFzc3dvcmQ9aXB0djIwMjYmdHlwZT1tM3VfcGx1cw==";
     let allData = [];
     const video = document.getElementById('player');
     let hls = new Hls();
     let currentActiveUrl = "";
 
+    // ڕێکخستنی شارەکانی کوردستان بەپێی پۆتانەکانی لۆکاڵی خۆیان (Open-Meteo)
     const kurdistanCities = [
-        { en: "Erbil", ku: "هەولێر" },
-        { en: "Sulaymaniyah", ku: "سلێمانی" },
-        { en: "Duhok", ku: "دهۆک" },
-        { en: "Kirkuk", ku: "کەرکووک" },
-        { en: "Halabja", ku: "هەڵەبجە" }
+        { name: "هەولێر", lat: 36.1911, lon: 44.0092 },
+        { name: "سلێمانی", lat: 35.5612, lon: 45.4385 },
+        { name: "دهۆک", lat: 36.8601, lon: 42.9891 },
+        { name: "کەرکووک", lat: 35.4681, lon: 44.3922 },
+        { name: "هەڵەبجە", lat: 35.1778, lon: 45.9861 }
     ];
-    
-    // داتای جێگیر بۆ دڵنیایی زیاتر
-    let cachedWeather = {
-        0: { name: "هەولێر", temp: "26°C", desc: "خۆرهەتاو", icon: "☀️" },
-        1: { name: "سلێمانی", temp: "23°C", desc: "فێنک", icon: "🍃" },
-        2: { name: "دهۆک", temp: "24°C", desc: "ئاسایی", icon: "🌤️" },
-        3: { name: "کەرکووک", temp: "29°C", desc: "گەرمووخۆش", icon: "☀️" },
-        4: { name: "هەڵەبجە", temp: "22°C", desc: "فێنک", icon: "🍃" }
-    }; 
-    
+
+    // لۆجیکی کۆدی کەشوهەواکەی خۆت
+    const weatherCodes = {
+        0: { text: 'Clear Sky', icon: '☀️' },
+        1: { text: 'Mainly Clear', icon: '🌤️' },
+        2: { text: 'Partly Cloudy', icon: '⛅' },
+        3: { text: 'Cloudy', icon: '☁️' },
+        45: { text: 'Foggy', icon: '🌫️' },
+        48: { text: 'Foggy', icon: '🌫️' },
+        51: { text: 'Light Drizzle', icon: '🌦️' },
+        53: { text: 'Moderate Drizzle', icon: '🌦️' },
+        55: { text: 'Dense Drizzle', icon: '🌧️' },
+        61: { text: 'Slight Rain', icon: '🌧️' },
+        63: { text: 'Moderate Rain', icon: '🌧️' },
+        65: { text: 'Heavy Rain', icon: '⛈️' },
+        71: { text: 'Slight Snow', icon: '🌨️' },
+        73: { text: 'Moderate Snow', icon: '❄️' },
+        75: { text: 'Heavy Snow', icon: '❄️' },
+        80: { text: 'Light Showers', icon: '🌦️' },
+        81: { text: 'Moderate Showers', icon: '🌧️' },
+        82: { text: 'Heavy Showers', icon: '⛈️' },
+        95: { text: 'Thunderstorm', icon: '⛈️' }
+    };
+
+    // کۆگا کردنی داتاکان دوای هێنان
+    let cachedWeather = {};
     let currentCityIndex = 0;
 
     window.onload = function() {
         startLoading();
         
+        // یەکەمجار داتا ڕاستەقینەکان دەهێنێت
         fetchLiveWeather().then(() => {
             showMiniWeather(0);
         });
 
-        // ٥ خولەک جارێک داتا خۆکارەکان نوێ دەبنەوە
+        // ٥ خولەک جارێک خۆکارانە داتای نوێ لە Open-Meteo وە دەهێنێت
         setInterval(fetchLiveWeather, 300000);
         
-        // کاتژمێر و مێژوو
+        // نوێکردنەوەی کاتژمێر
         updateUiDateTime();
         setInterval(updateUiDateTime, 1000);
         
-        // ٥ چرکە جارێک سڵایدی شارەکان
+        // ٥ چرکە جارێک سڵایدی نێوان شارەکان دەکات
         setInterval(cycleWeather, 5000);
     };
 
     async function fetchLiveWeather() {
-        const apiKey = "b71d87130f14064fb93649646b9a89b6";
         for (let i = 0; i < kurdistanCities.length; i++) {
             const city = kurdistanCities[i];
             try {
-                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city.en}&appid=${apiKey}&units=metric`);
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia/Baghdad`);
                 if(res.ok) {
                     const data = await res.json();
-                    let mainW = data.weather[0].main.toLowerCase();
-                    let desc = "ئاسایی"; let icon = "🌤️";
+                    const current = data.current;
+                    const info = weatherCodes[current.weather_code] || { text: 'Clear Sky', icon: '☀️' };
                     
-                    if(mainW.includes('cloud')) { desc = "هەور"; icon = "☁️"; }
-                    else if(mainW.includes('rain') || mainW.includes('drizzle')) { desc = "باران"; icon = "🌧️"; }
-                    else if(mainW.includes('clear')) { desc = "ڕوون"; icon = "☀️"; }
-                    else if(mainW.includes('snow')) { desc = "بەفر"; icon = "❄️"; }
-                    else if(mainW.includes('thunder')) { desc = "بروسکە"; icon = "⛈️"; }
-
                     cachedWeather[i] = {
-                        name: city.ku,
-                        temp: `${Math.round(data.main.temp)}°C`,
-                        desc: desc,
-                        icon: icon
+                        name: city.name,
+                        temp: `${Math.round(current.temperature_2m)}°C`,
+                        desc: info.text,
+                        icon: info.icon
                     };
                 }
-            } catch(e) { console.log("Weather service error"); }
-        }
-    }
-
-    function updateUiDateTime() {
-        const now = new Date();
-        let hh = String(now.getHours()).padStart(2, '0');
-        let mm = String(now.getMinutes()).padStart(2, '0');
-        let ss = String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('pClock').innerText = `${hh}:${mm}:${ss}`;
-        
-        try {
-            const hijriOpt = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
-            let hijriStr = new Intl.DateTimeFormat('ar-SA', hijriOpt).format(now).replace('هـ', 'کۆچی');
-            let gregStr = " - ٢٥ أيار"; 
-            document.getElementById('pDates').innerText = hijriStr + gregStr;
-        } catch (e) {
-            document.getElementById('pDates').innerText = "٧ ذو الحجة ١٤٤٧ کۆچی - ٢٥ أيار";
+            } catch(e) { 
+                console.log("Error fetching for " + city.name);
+            }
         }
     }
 
@@ -227,6 +222,23 @@
             showMiniWeather(currentCityIndex);
             el.style.opacity = 1;
         }, 400);
+    }
+
+    function updateUiDateTime() {
+        const now = new Date();
+        let hh = String(now.getHours()).padStart(2, '0');
+        let mm = String(now.getMinutes()).padStart(2, '0');
+        let ss = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('pClock').innerText = `${hh}:${mm}:${ss}`;
+        
+        try {
+            const hijriOpt = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
+            let hijriStr = new Intl.DateTimeFormat('ar-SA', hijriOpt).format(now).replace('هـ', 'کۆچی');
+            let gregStr = " - ٢٥ أيار"; 
+            document.getElementById('pDates').innerText = hijriStr + gregStr;
+        } catch (e) {
+            document.getElementById('pDates').innerText = "٧ ذو الحجة ١٤٤٧ کۆچی - ٢٥ أيار";
+        }
     }
 
     async function startLoading() {
