@@ -33,7 +33,6 @@
         .chan-card:hover { background: rgba(255,255,255,0.1); }
         .chan-card img { width: 40px; height: 40px; object-fit: contain; background: white; border-radius: 4px; }
         
-        /* 🌟 ستایلی ئەو کەناڵەی ئێستا کلیکی لێکراوە و کار دەکات 🌟 */
         .chan-card.active-channel { 
             background: linear-gradient(90deg, rgba(240,185,11,0.25), rgba(240,185,11,0.15)) !important; 
             border-right: 4px solid var(--primary);
@@ -43,6 +42,23 @@
         
         video { width: 100%; max-width: 800px; aspect-ratio: 16/9; border-radius: 12px; border: 1px solid var(--border); }
         
+        /* 🌤️ هێڵی مینیماڵی کەشوهەوا 🌤️ */
+        .weather-mini-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: rgba(13, 17, 23, 0.85);
+            border: 1px solid var(--border);
+            padding: 8px 24px;
+            border-radius: 30px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #ddd;
+            opacity: 1;
+            transition: opacity 0.4s ease-in-out;
+        }
+
         @media (max-width: 768px) {
             .wrapper { flex-direction: column; overflow-y: auto; }
             .col-groups, .col-channels { width: 100%; height: 200px; }
@@ -60,22 +76,65 @@
 <div class="wrapper" id="mainApp">
     <div class="col-groups"><div class="header">📁 گرووپەکان</div><div class="scrollable" id="gList"></div></div>
     <div class="col-channels"><div class="header">📺 کەناڵەکان</div><div class="scrollable" id="cList"></div></div>
+    
     <div class="col-player">
+        
+        <div id="weatherMini" class="weather-mini-bar">
+            <span id="miniIcon">☀️</span>
+            <span id="miniCity" style="font-weight: bold; color: var(--primary);">هەولێر</span>
+            <span id="miniTemp" style="font-weight: bold;">26°C</span>
+            <span id="miniDesc" style="color: #aaa; font-size: 0.78rem;">(خۆرهەتاو)</span>
+        </div>
+
         <video id="player" controls autoplay></video>
         <div id="title" style="margin-top:15px; color:var(--primary); font-weight:bold; font-size:1.2rem;">KAMAL PRO ULTRA</div>
     </div>
 </div>
 
 <script>
-    const _URL = "aHR0cHM6Ly94dHJlYW0taWUubmV0L2dldC5waHA/dXNlcm5hbWU9aXB0djIwMjYmcGFzc3dvcmQ9aXB0djIwMjYmdHlwZT1tM3VfcGx1cw==";
+    const _URL = "aHR0cHM6Ly94dHJlYW0taWUubmV0L2dldC5waHA/dXNlcm5hbWU9aXB0tvIwMjYmcGFzc3dvcmQ9aXB0tvIwMjYmdHlwZT1tM3VfcGx1cw==";
     let allData = [];
     const video = document.getElementById('player');
     let hls = new Hls();
-    let currentActiveUrl = ""; // پاراستنی لایڤی چالاک بۆ کاتی گۆڕینی گرووپەکان
+    let currentActiveUrl = "";
+
+    // داتای تەواو ڕێکخراو لەگەڵ شاشەکەت
+    const kurdistanWeatherStatic = [
+        { name: "هەولێر", temp: "26°C", desc: "خۆرهەتاو", icon: "☀️" },
+        { name: "سلێمانی", temp: "23°C", desc: "فێنک", icon: "🍃" },
+        { name: "دهۆک", temp: "24°C", desc: "ئاسایی", icon: "🌤️" },
+        { name: "کەرکووک", temp: "29°C", desc: "گەرمووخۆش", icon: "☀️" },
+        { name: "هەڵەبجە", temp: "22°C", desc: "فێنک", icon: "🍃" }
+    ];
+    
+    let currentCityIndex = 0;
 
     window.onload = function() {
         startLoading();
+        showMiniWeather(0);
+        
+        // ٥ چرکە جارێک گۆڕینی خۆکارانە بە بێ کێشە
+        setInterval(cycleWeather, 5000);
     };
+
+    function showMiniWeather(index) {
+        const data = kurdistanWeatherStatic[index];
+        document.getElementById('miniCity').innerText = data.name;
+        document.getElementById('miniTemp').innerText = data.temp;
+        document.getElementById('miniDesc').innerText = "(" + data.desc + ")";
+        document.getElementById('miniIcon').innerText = data.icon;
+    }
+
+    function cycleWeather() {
+        const el = document.getElementById('weatherMini');
+        el.style.opacity = 0;
+        
+        setTimeout(() => {
+            currentCityIndex = (currentCityIndex + 1) % kurdistanWeatherStatic.length;
+            showMiniWeather(currentCityIndex);
+            el.style.opacity = 1;
+        }, 400);
+    }
 
     async function startLoading() {
         try {
@@ -84,16 +143,13 @@
             parseM3U(d);
             document.getElementById('loadingOverlay').style.display = 'none';
         } catch(e) { 
-            console.log("Error loading M3U"); 
             document.getElementById('loadingOverlay').innerHTML = "<h3 style='color:red;'>خەتایەک لە هێنانەوەی کەناڵەکان هەیە!</h3>";
         }
     }
 
     function parseM3U(data) {
         const lines = data.split('\n');
-        let obj = {};
-        allData = []; 
-        
+        let obj = {}; allData = []; 
         lines.forEach(l => {
             if(l.startsWith('#EXTINF:')) {
                 obj.name = l.split(',')[1] || "Channel";
@@ -102,13 +158,10 @@
                 obj.group = g ? g[1] : "General";
                 obj.logo = i ? i[1] : "";
             } else if(l.startsWith('http')) {
-                obj.url = l.trim();
-                allData.push(obj);
-                obj = {};
+                obj.url = l.trim(); allData.push(obj); obj = {};
             }
         });
         renderG();
-        // بە شێوازی دەستپێک یەکەم گرووپ بە ئەکتیڤ دادەنێت
         const firstBtn = document.querySelector('.group-btn');
         if(firstBtn) firstBtn.classList.add('active-group');
         renderC(allData);
@@ -122,41 +175,27 @@
     function renderC(list) {
         document.getElementById('cList').innerHTML = list.map(x => {
             const img = (x.logo) ? x.logo : `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=f0b90b&color=000&bold=true`;
-            // ئەگەر ئەم کەناڵە پێشتر لێدرابوو، با بە ئەکتیڤی بمێنێتەوە
             const isActive = (x.url === currentActiveUrl) ? 'active-channel' : '';
             return `<div class="chan-card ${isActive}" onclick="play('${x.url}', '${x.name}', this)"><img src="${img}"><span>${x.name}</span></div>`;
         }).join('');
     }
 
     function play(u, n, element) {
-        currentActiveUrl = u; // پاشەکەوتکردنی کلیل بۆ ڕیفرێش
+        currentActiveUrl = u;
         document.getElementById('title').innerText = n;
-        
-        // لادانی ڕەنگی ئەکتیڤ لەسەر کەناڵەکانی تر
         document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active-channel'));
-        // پێدانی ڕەنگی جیاواز بەو کەناڵەی ئێستا کلیکی لێکراوە
-        if(element) {
-            element.classList.add('active-channel');
-        }
+        if(element) element.classList.add('active-channel');
 
         if(Hls.isSupported()) { 
-            hls.destroy(); 
-            hls = new Hls(); 
-            hls.loadSource(u); 
-            hls.attachMedia(video); 
+            hls.destroy(); hls = new Hls(); hls.loadSource(u); hls.attachMedia(video); 
             hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play()); 
         }
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
-            video.src = u; 
-            video.play(); 
-        }
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = u; video.play(); }
     }
 
     function filter(g, btnElement) {
-        // گۆڕینی ڕەنگی گرووپی هەڵبژێردراو
         document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active-group'));
         if(btnElement) btnElement.classList.add('active-group');
-
         renderC(g === "هەمووی" ? allData : allData.filter(x => x.group === g));
     }
 </script>
