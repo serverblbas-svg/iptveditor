@@ -66,7 +66,7 @@
         .phone-weather-section {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             background: rgba(0, 0, 0, 0.2);
             padding: 6px 16px;
             border-radius: 30px;
@@ -75,6 +75,7 @@
         }
         .phone-temp { font-size: 1.3rem; font-weight: bold; color: var(--primary); }
         .phone-city-details { display: flex; flex-direction: column; font-size: 0.8rem; text-align: right; }
+        .phone-gregorian-date { color: rgba(240, 185, 11, 0.85); font-size: 0.75rem; font-weight: 500; margin-top: 1px; }
 
         @media (max-width: 768px) {
             .wrapper { flex-direction: column; overflow-y: auto; }
@@ -106,8 +107,8 @@
             <div id="pWeatherBox" class="phone-weather-section">
                 <span id="pIcon" style="font-size: 1.4rem;">☀️</span>
                 <div class="phone-city-details">
-                    <span id="pCity" style="font-weight: bold; color: #fff;">هەولێر</span>
-                    <span id="pDesc" style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">Clear Sky</span>
+                    <div><span id="pCity" style="font-weight: bold; color: #fff;">هەولێر</span> • <span id="pDesc" style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">Clear Sky</span></div>
+                    <span id="pGregorian" class="phone-gregorian-date">بار دەکات...</span>
                 </div>
                 <span id="pTemp" class="phone-temp">--°C</span>
             </div>
@@ -217,55 +218,29 @@
         }, 400);
     }
 
-    // لۆجیکی حیسابکردنی ڕۆژژمێری فەرمی کوردی هەرێمی کوردستان
+    // لۆجیکی فەرمی ڕۆژژمێری کوردی
     function getKurdishDate(date) {
         const kurdishMonths = [
-            "خاکەلێوە", "بانەمەڕ", "جۆزەردان", 
-            "پوشپەڕ", "گەلاوێژ", "خەرمانان", 
-            "ڕەزبەر", "گەڵاڕێزان", "سەرماوەز", 
-            "بەفرانبار", "ڕێبەندان", "ڕەشەمە"
+            "خاکەلێوە", "بانەمەڕ", "جۆزەردان", "پوشپەڕ", "گەلاوێژ", "خەرمانان", 
+            "ڕەزبەر", "گەڵاڕێزان", "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە"
         ];
-
-        // وەرگرتنی ڕۆژ و مانگ و ساڵی زاینی لۆکاڵی
-        const gYear = date.getFullYear();
-        const gMonth = date.getMonth() + 1;
-        const gDay = date.getDate();
-
-        // دیاریکردنی ساڵی کوردی (جیاوازی پۆڵایینی ٧٨٨ ساڵ)
-        let kYear = gYear + 788;
-        let kMonth = 0;
-        let kDay = 0;
-
-        // لۆجیکی وردی گۆڕینی ڕۆژەکان بەپێی نەورۆز (٢١ی ئازار)
-        const isLeapG = ((gYear % 4 === 0 && gYear % 100 !== 0) || (gYear % 400 === 0));
-        let daysSinceNewroz = 0;
-
-        // دروستکردنی کاتی نەورۆزی هەمان ساڵ
-        const newrozDate = new Date(gYear, 2, 21); // ٢١ی ئازار
-        const currentTarget = new Date(gYear, gMonth - 1, gDay);
-
-        if (currentTarget >= newrozDate) {
-            const diffTime = Math.abs(currentTarget - newrozDate);
-            daysSinceNewroz = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        } else {
-            // ئەگەر پێش نەورۆز بێت، دەکەوێتە ساڵی پێشووتر لە ڕووی کوردییەوە
-            kYear--;
-            const prevNewroz = new Date(gYear - 1, 2, 21);
-            const diffTime = Math.abs(currentTarget - prevNewroz);
-            daysSinceNewroz = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        try {
+            const PersianFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { day: 'numeric', month: 'numeric', year: 'numeric' });
+            const parts = PersianFormatter.format(date).split('/');
+            let pMonth = parseInt(parts[0]) - 1;
+            let pDay = parseInt(parts[1]);
+            let pYear = parseInt(parts[2]);
+            let kYear = pYear + 1321; 
+            return `${pDay}ی ${kurdishMonths[pMonth]}ی ${kYear}`;
+        } catch (e) {
+            return "٥ی جۆزەردانی ٢٧٢٦";
         }
+    }
 
-        // دابەشکردنی ڕۆژەکان بەسەر مانگە کوردییەکاندا (٦ مانگی یەکەم ٣١ ڕۆژ، ٥ مانگی دووەم ٣٠ ڕۆژ، مانگی کۆتا ٢٩ یان ٣٠ ڕۆژ)
-        if (daysSinceNewroz <= 186) { // ٦ مانگی یەکەم
-            kMonth = Math.floor((daysSinceNewroz - 1) / 31);
-            kDay = ((daysSinceNewroz - 1) % 31) + 1;
-        } else { // ٦ مانگی دووەم
-            const remainingDays = daysSinceNewroz - 186;
-            kMonth = 6 + Math.floor((remainingDays - 1) / 30);
-            kDay = ((remainingDays - 1) % 30) + 1;
-        }
-
-        return `${kDay}ی ${kurdishMonths[kMonth]}ی ${kYear}`;
+    // دروستکردنی مێژووی میلادی (زاینی) بە کوردی
+    function getGregorianDateStr(date) {
+        const months = ["کانوونی دووەم", "شوبات", "ئازار", "نیسان", "ئایار", "حوزەیران", "تەممووز", "ئاب", "ئەیلوول", "تشرینی یەکەم", "تشرینی دووەم", "کانوونی یەکەم"];
+        return `${date.getDate()}ی ${months[date.getMonth()]}ی ${date.getFullYear()}`;
     }
 
     function updateUiDateTime() {
@@ -275,18 +250,19 @@
         let ss = String(now.getSeconds()).padStart(2, '0');
         document.getElementById('pClock').innerText = `${hh}:${mm}:${ss}`;
         
-        // دروستکردنی مێژووی کۆچی
         let hijriStr = "";
         try {
             const hijriOpt = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
             hijriStr = new Intl.DateTimeFormat('ar-SA', hijriOpt).format(now).replace('هـ', 'کۆچی');
         } catch (e) {
-            hijriStr = "٧ ذو الحجة ١٤٤٧ کۆچی";
+            hijriStr = "٨ ذو الحجة ١٤٤٧ کۆچی";
         }
 
-        // تێکەڵکردنی مێژووی کۆچی + مێژووی فەرمی کوردی ٢٧٢٦
         const kurdishDateStr = getKurdishDate(now);
         document.getElementById('pDates').innerText = `${hijriStr} ❖ ${kurdishDateStr}`;
+        
+        // نوێکردنەوەی مێژووی میلادی ژێر کەشوهەوا
+        document.getElementById('pGregorian').innerText = getGregorianDateStr(now);
     }
 
     async function startLoading() {
