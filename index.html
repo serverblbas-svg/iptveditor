@@ -77,6 +77,21 @@
         .phone-city-details { display: flex; flex-direction: column; font-size: 0.8rem; text-align: right; }
         .phone-gregorian-date { color: rgba(240, 185, 11, 0.85); font-size: 0.75rem; font-weight: 500; margin-top: 1px; }
 
+        /* بەشی زانیاری EPG */
+        .epg-info {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #ccc;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: none;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             .wrapper { flex-direction: column; overflow-y: auto; }
             .col-groups, .col-channels { width: 100%; height: 200px; }
@@ -89,7 +104,7 @@
 <div id="loadingOverlay">
     <div class="spinner"></div>
     <h2 style="color:var(--primary); margin-top:20px;">KAMAL PRO</h2>
-    <p style="font-size:0.8rem; color:#666;">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان و کەشوهەوا...</p>
+    <p id="loadingStatus" style="font-size:0.8rem; color:#ccc;">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان و کەشوهەوا...</p>
 </div>
 
 <div class="wrapper" id="mainApp">
@@ -116,12 +131,17 @@
 
         <video id="player" controls autoplay></video>
         <div id="title" style="margin-top:15px; color:var(--primary); font-weight:bold; font-size:1.2rem;">KAMAL PRO ULTRA</div>
+        <div id="epgDisplay" class="epg-info"></div>
     </div>
 </div>
 
 <script>
-    const _URL = "aHR0cHM6Ly94dHJlYW0taWUubmV0L2dldC5waHA/dXNlcm5hbWU9aXB0djIwMjYmcGFzc3dvcmQ9aXB0djIwMjYmdHlwZT1tM3VfcGx1cw==";
+    // بەستەرە نوێیەکانی جەنابت
+    const M3U_URL = "https://xtream-ie.net/get.php?username=iptv2026&password=iptv2026&type=m3u_plus";
+    const EPG_URL = "https://xtream-ie.net/xmltv.php?username=iptv2026&password=iptv2026";
+    
     let allData = [];
+    let epgData = {};
     const video = document.getElementById('player');
     let hls = new Hls();
     let currentActiveUrl = "";
@@ -135,24 +155,15 @@
     ];
 
     const weatherCodes = {
-        0: { text: 'Clear Sky', icon: '☀️' },
-        1: { text: 'Mainly Clear', icon: '🌤️' },
-        2: { text: 'Partly Cloudy', icon: '⛅' },
-        3: { text: 'Cloudy', icon: '☁️' },
-        45: { text: 'Foggy', icon: '🌫️' },
-        48: { text: 'Foggy', icon: '🌫️' },
-        51: { text: 'Light Drizzle', icon: '🌦️' },
-        53: { text: 'Moderate Drizzle', icon: '🌦️' },
-        55: { text: 'Dense Drizzle', icon: '🌧️' },
-        61: { text: 'Slight Rain', icon: '🌧️' },
-        63: { text: 'Moderate Rain', icon: '🌧️' },
-        65: { text: 'Heavy Rain', icon: '⛈️' },
-        71: { text: 'Slight Snow', icon: '🌨️' },
-        73: { text: 'Moderate Snow', icon: '❄️' },
-        75: { text: 'Heavy Snow', icon: '❄️' },
-        80: { text: 'Light Showers', icon: '🌦️' },
-        81: { text: 'Moderate Showers', icon: '🌧️' },
-        82: { text: 'Heavy Showers', icon: '⛈️' },
+        0: { text: 'Clear Sky', icon: '☀️' }, 1: { text: 'Mainly Clear', icon: '🌤️' },
+        2: { text: 'Partly Cloudy', icon: '⛅' }, 3: { text: 'Cloudy', icon: '☁️' },
+        45: { text: 'Foggy', icon: '🌫️' }, 48: { text: 'Foggy', icon: '🌫️' },
+        51: { text: 'Light Drizzle', icon: '🌦️' }, 53: { text: 'Moderate Drizzle', icon: '🌦️' },
+        55: { text: 'Dense Drizzle', icon: '🌧️' }, 61: { text: 'Slight Rain', icon: '🌧️' },
+        63: { text: 'Moderate Rain', icon: '🌧️' }, 65: { text: 'Heavy Rain', icon: '⛈️' },
+        71: { text: 'Slight Snow', icon: '🌨️' }, 73: { text: 'Moderate Snow', icon: '❄️' },
+        75: { text: 'Heavy Snow', icon: '❄️' }, 80: { text: 'Light Showers', icon: '🌦️' },
+        81: { text: 'Moderate Showers', icon: '🌧️' }, 82: { text: 'Heavy Showers', icon: '⛈️' },
         95: { text: 'Thunderstorm', icon: '⛈️' }
     };
 
@@ -161,16 +172,10 @@
 
     window.onload = function() {
         startLoading();
-        
-        fetchLiveWeather().then(() => {
-            showMiniWeather(0);
-        });
-
+        fetchLiveWeather().then(() => showMiniWeather(0));
         setInterval(fetchLiveWeather, 300000);
-        
         updateUiDateTime();
         setInterval(updateUiDateTime, 1000);
-        
         setInterval(cycleWeather, 5000);
     };
 
@@ -181,19 +186,10 @@
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia/Baghdad`);
                 if(res.ok) {
                     const data = await res.json();
-                    const current = data.current;
-                    const info = weatherCodes[current.weather_code] || { text: 'Clear Sky', icon: '☀️' };
-                    
-                    cachedWeather[i] = {
-                        name: city.name,
-                        temp: `${Math.round(current.temperature_2m)}°C`,
-                        desc: info.text,
-                        icon: info.icon
-                    };
+                    const info = weatherCodes[data.current.weather_code] || { text: 'Clear Sky', icon: '☀️' };
+                    cachedWeather[i] = { name: city.name, temp: `${Math.round(data.current.temperature_2m)}°C`, desc: info.text, icon: info.icon };
                 }
-            } catch(e) { 
-                console.log("Error fetching for " + city.name);
-            }
+            } catch(e) { console.log("Weather error"); }
         }
     }
 
@@ -210,7 +206,6 @@
         const el = document.getElementById('pWeatherBox');
         if(!el) return;
         el.style.opacity = 0;
-        
         setTimeout(() => {
             currentCityIndex = (currentCityIndex + 1) % kurdistanCities.length;
             showMiniWeather(currentCityIndex);
@@ -218,26 +213,16 @@
         }, 400);
     }
 
-    // لۆجیکی فەرمی ڕۆژژمێری کوردی
     function getKurdishDate(date) {
-        const kurdishMonths = [
-            "خاکەلێوە", "بانەمەڕ", "جۆزەردان", "پوشپەڕ", "گەلاوێژ", "خەرمانان", 
-            "ڕەزبەر", "گەڵاڕێزان", "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە"
-        ];
+        const kurdishMonths = ["خاکەلێوە", "بانەمەڕ", "جۆزەردان", "پوشپەڕ", "گەلاوێژ", "خەرمانان", "ڕەزبەر", "گەڵاڕێزان", "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە"];
         try {
             const PersianFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { day: 'numeric', month: 'numeric', year: 'numeric' });
             const parts = PersianFormatter.format(date).split('/');
-            let pMonth = parseInt(parts[0]) - 1;
-            let pDay = parseInt(parts[1]);
-            let pYear = parseInt(parts[2]);
-            let kYear = pYear + 1321; 
-            return `${pDay}ی ${kurdishMonths[pMonth]}ی ${kYear}`;
-        } catch (e) {
-            return "٥ی جۆزەردانی ٢٧٢٦";
-        }
+            let kYear = parseInt(parts[2]) + 1321; 
+            return `${parseInt(parts[1])}ی ${kurdishMonths[parseInt(parts[0]) - 1]}ی ${kYear}`;
+        } catch (e) { return "٥ی جۆزەردانی ٢٧٢٦"; }
     }
 
-    // دروستکردنی مێژووی میلادی (زاینی) بە کوردی
     function getGregorianDateStr(date) {
         const months = ["کانوونی دووەم", "شوبات", "ئازار", "نیسان", "ئایار", "حوزەیران", "تەممووز", "ئاب", "ئەیلوول", "تشرینی یەکەم", "تشرینی دووەم", "کانوونی یەکەم"];
         return `${date.getDate()}ی ${months[date.getMonth()]}ی ${date.getFullYear()}`;
@@ -245,35 +230,51 @@
 
     function updateUiDateTime() {
         const now = new Date();
-        let hh = String(now.getHours()).padStart(2, '0');
-        let mm = String(now.getMinutes()).padStart(2, '0');
-        let ss = String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('pClock').innerText = `${hh}:${mm}:${ss}`;
+        document.getElementById('pClock').innerText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
         
         let hijriStr = "";
         try {
-            const hijriOpt = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
-            hijriStr = new Intl.DateTimeFormat('ar-SA', hijriOpt).format(now).replace('هـ', 'کۆچی');
-        } catch (e) {
-            hijriStr = "٨ ذو الحجة ١٤٤٧ کۆچی";
-        }
+            hijriStr = new Intl.DateTimeFormat('ar-SA', { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' }).format(now).replace('هـ', 'کۆچی');
+        } catch (e) { hijriStr = "٨ ذو الحجة ١٤٤٧ کۆچی"; }
 
-        const kurdishDateStr = getKurdishDate(now);
-        document.getElementById('pDates').innerText = `${hijriStr} ❖ ${kurdishDateStr}`;
-        
-        // نوێکردنەوەی مێژووی میلادی ژێر کەشوهەوا
+        document.getElementById('pDates').innerText = `${hijriStr} ❖ ${getKurdishDate(now)}`;
         document.getElementById('pGregorian').innerText = getGregorianDateStr(now);
     }
 
     async function startLoading() {
         try {
-            const r = await fetch(atob(_URL));
+            // بارکردنی کەناڵەکان
+            const r = await fetch(M3U_URL);
             const d = await r.text();
             parseM3U(d);
+            
+            // بارکردنی EPG بە شێوەی پاسیڤ لە باکگراوند
+            fetchEPG();
+
             document.getElementById('loadingOverlay').style.display = 'none';
         } catch(e) { 
-            document.getElementById('loadingOverlay').innerHTML = "<h3 style='color:red;'>خەتایەک لە هێنانەوەی کەناڵەکان هەیە!</h3>";
+            document.getElementById('loadingStatus').innerHTML = "<span style='color:red;'>خەتا لە هێنانی بەستەرەکە! دڵنیابەوە لە ئینتەرنێتەکەت.</span>";
         }
+    }
+
+    async function fetchEPG() {
+        try {
+            const res = await fetch(EPG_URL);
+            const text = await res.text();
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(text, "text/xml");
+            const programmes = xmlDoc.getElementsByTagName("programme");
+            
+            for (let i = 0; i < programmes.length; i++) {
+                const prog = programmes[i];
+                const channelId = prog.getAttribute("channel");
+                const title = prog.getElementsByTagName("title")[0]?.textContent || "";
+                const start = prog.getAttribute("start");
+                
+                if (!epgData[channelId]) epgData[channelId] = [];
+                epgData[channelId].push({ title, start });
+            }
+        } catch (e) { console.log("EPG non-critical error or CORS block"); }
     }
 
     function parseM3U(data) {
@@ -284,16 +285,16 @@
                 obj.name = l.split(',')[1] || "Channel";
                 const g = l.match(/group-title="([^"]+)"/i);
                 const i = l.match(/tvg-logo="([^"]+)"/i);
+                const cid = l.match(/tvg-id="([^"]+)"/i);
                 obj.group = g ? g[1] : "General";
                 obj.logo = i ? i[1] : "";
+                obj.id = cid ? cid[1] : "";
             } else if(l.startsWith('http')) {
                 obj.url = l.trim(); allData.push(obj); obj = {};
             }
         });
         renderG();
-        const firstBtn = document.querySelector('.group-btn');
-        if(firstBtn) firstBtn.classList.add('active-group');
-        renderC(allData);
+        if(allData.length > 0) filter("هەمووی", document.querySelector('.group-btn'));
     }
 
     function renderG() {
@@ -305,15 +306,25 @@
         document.getElementById('cList').innerHTML = list.map(x => {
             const img = (x.logo) ? x.logo : `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=f0b90b&color=000&bold=true`;
             const isActive = (x.url === currentActiveUrl) ? 'active-channel' : '';
-            return `<div class="chan-card ${isActive}" onclick="play('${x.url}', '${x.name}', this)"><img src="${img}"><span>${x.name}</span></div>`;
+            return `<div class="chan-card ${isActive}" onclick="play('${x.url}', '${x.name}', '${x.id}', this)"><img src="${img}"><span>${x.name}</span></div>`;
         }).join('');
     }
 
-    function play(u, n, element) {
+    function play(u, n, id, element) {
         currentActiveUrl = u;
         document.getElementById('title').innerText = n;
         document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active-channel'));
         if(element) element.classList.add('active-channel');
+
+        // نیشاندانی زانیاری بەرنامەکان (EPG)
+        const epgDisplay = document.getElementById('epgDisplay');
+        if(id && epgData[id] && epgData[id].length > 0) {
+            const currentProg = epgData[id][0].title;
+            epgDisplay.innerText = `ئێستا پێشکەش دەکرێت: ${currentProg}`;
+            epgDisplay.style.display = "block";
+        } else {
+            epgDisplay.style.display = "none";
+        }
 
         if(Hls.isSupported()) { 
             hls.destroy(); hls = new Hls(); hls.loadSource(u); hls.attachMedia(video); 
