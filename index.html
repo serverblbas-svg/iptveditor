@@ -42,28 +42,44 @@
         
         video { width: 100%; max-width: 800px; aspect-ratio: 16/9; border-radius: 12px; border: 1px solid var(--border); }
         
-        /* 🌤️ هێڵی مینیماڵی زانیارییەکان (کەشوهەوا + کاتژمێر + مێژووی هیجری) 🌤️ */
-        .info-top-bar {
+        /* 📱 هێڵی مۆدێرنی شووشەیی 📱 */
+        .phone-style-bar {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 20px;
-            background: rgba(13, 17, 23, 0.9);
-            border: 1px solid var(--border);
-            padding: 8px 24px;
-            border-radius: 30px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            color: #ddd;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
-        .info-section { display: flex; align-items: center; gap: 8px; }
-        .divider { color: var(--border); }
-        #weatherMini { transition: opacity 0.4s ease-in-out; }
+        
+        .phone-time-section { display: flex; flex-direction: column; align-items: flex-start; }
+        .phone-clock { font-size: 1.6rem; font-weight: 300; color: #ffffff; letter-spacing: 1px; line-height: 1.2; }
+        .phone-date { font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
+        
+        .phone-weather-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 16px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: opacity 0.4s ease-in-out;
+        }
+        .phone-temp { font-size: 1.3rem; font-weight: bold; color: var(--primary); }
+        .phone-city-details { display: flex; flex-direction: column; font-size: 0.8rem; }
 
         @media (max-width: 768px) {
             .wrapper { flex-direction: column; overflow-y: auto; }
             .col-groups, .col-channels { width: 100%; height: 200px; }
+            .phone-style-bar { width: 90%; }
         }
     </style>
 </head>
@@ -72,7 +88,7 @@
 <div id="loadingOverlay">
     <div class="spinner"></div>
     <h2 style="color:var(--primary); margin-top:20px;">KAMAL PRO</h2>
-    <p style="font-size:0.8rem; color:#666;">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان...</p>
+    <p style="font-size:0.8rem; color:#666;">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان و کەشوهەوا...</p>
 </div>
 
 <div class="wrapper" id="mainApp">
@@ -81,24 +97,19 @@
     
     <div class="col-player">
         
-        <div class="info-top-bar">
-            <div class="info-section" style="color: var(--primary); font-weight: bold;">
-                🕒 <span id="liveClock">00:00:00</span>
+        <div class="phone-style-bar">
+            <div class="phone-time-section">
+                <div id="pClock" class="phone-clock">00:00:00</div>
+                <div id="pDates" class="phone-date">بار دەکات...</div>
             </div>
             
-            <span class="divider">|</span>
-            
-            <div class="info-section" style="color: #6366f1; font-weight: bold;">
-                🌙 <span id="hijriDate">بار دەکات...</span>
-            </div>
-            
-            <span class="divider">|</span>
-            
-            <div id="weatherMini" class="info-section">
-                <span id="miniIcon">☀️</span>
-                <span id="miniCity" style="font-weight: bold; color: var(--primary);">هەولێر</span>
-                <span id="miniTemp" style="font-weight: bold;">26°C</span>
-                <span id="miniDesc" style="color: #aaa; font-size: 0.78rem;">(خۆرهەتاو)</span>
+            <div id="pWeatherBox" class="phone-weather-section">
+                <span id="pIcon" style="font-size: 1.4rem;">☀️</span>
+                <div class="phone-city-details">
+                    <span id="pCity" style="font-weight: bold; color: #fff;">هەولێر</span>
+                    <span id="pDesc" style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">خۆرهەتاو</span>
+                </div>
+                <span id="pTemp" class="phone-temp">26°C</span>
             </div>
         </div>
 
@@ -114,66 +125,106 @@
     let hls = new Hls();
     let currentActiveUrl = "";
 
-    // داتای کەشوهەوا
-    const kurdistanWeatherStatic = [
-        { name: "هەولێر", temp: "26°C", desc: "خۆرهەتاو", icon: "☀️" },
-        { name: "سلێمانی", temp: "23°C", desc: "فێنک", icon: "🍃" },
-        { name: "دهۆک", temp: "24°C", desc: "ئاسایی", icon: "🌤️" },
-        { name: "کەرکووک", temp: "29°C", desc: "گەرمووخۆش", icon: "☀️" },
-        { name: "هەڵەبجە", temp: "22°C", desc: "فێنک", icon: "🍃" }
+    const kurdistanCities = [
+        { en: "Erbil", ku: "هەولێر" },
+        { en: "Sulaymaniyah", ku: "سلێمانی" },
+        { en: "Duhok", ku: "دهۆک" },
+        { en: "Kirkuk", ku: "کەرکووک" },
+        { en: "Halabja", ku: "هەڵەبجە" }
     ];
+    
+    // داتای جێگیر (بۆ کاتی نەبوونی خەت یان بلۆکبوونی API) بۆ ئەوەی قەت نیشانەی خاڵی نەیەت
+    let cachedWeather = {
+        0: { name: "هەولێر", temp: "26°C", desc: "خۆرهەتاو", icon: "☀️" },
+        1: { name: "سلێمانی", temp: "23°C", desc: "فێنک", icon: "🍃" },
+        2: { name: "دهۆک", temp: "24°C", desc: "ئاسایی", icon: "🌤️" },
+        3: { name: "کەرکووک", temp: "29°C", desc: "گەرمووخۆش", icon: "☀️" },
+        4: { name: "هەڵەبجە", temp: "22°C", desc: "فێنک", icon: "🍃" }
+    }; 
     
     let currentCityIndex = 0;
 
     window.onload = function() {
         startLoading();
-        showMiniWeather(0);
         
-        // کارپێکردنی کاتژمێر و مێژووی هیجری
-        updateClockAndHijri();
-        setInterval(updateClockAndHijri, 1000); // چرکە بە چرکە نوێ دەبێتەوە
+        // یەکەم هێنانی داتای خۆکار لە ئینتەرنێتەوە
+        fetchLiveWeather().then(() => {
+            showMiniWeather(0);
+        });
+
+        // ٥ خولەک جارێک خۆکارانە داتاکان لە ئینتەرنێتەوە نوێ دەکاتەوە (٣٠٠,٠٠٠ مۆڵی چرکە)
+        setInterval(fetchLiveWeather, 300000);
         
-        // ٥ چرکە جارێک گۆڕینی کەشوهەوا
+        // نوێکردنەوەی بەردەوامی کات و مێژوو
+        updateUiDateTime();
+        setInterval(updateUiDateTime, 1000);
+        
+        // ٥ چرکە جارێک گۆڕینی شارەکان بۆ نیشاندان
         setInterval(cycleWeather, 5000);
     };
 
-    // فەنکشن بۆ نوێکردنەوەی کات و مێژووی هیجری بە زمانی کوردی
-    function updateClockAndHijri() {
+    // فەنکشنی سەرەکی بۆ هێنانی داتای ڕاستەقینە لە ئینتەرنێتەوە
+    async function fetchLiveWeather() {
+        const apiKey = "b71d87130f14064fb93649646b9a89b6";
+        for (let i = 0; i < kurdistanCities.length; i++) {
+            const city = kurdistanCities[i];
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city.en}&appid=${apiKey}&units=metric`);
+                if(res.ok) {
+                    const data = await res.json();
+                    let mainW = data.weather[0].main.toLowerCase();
+                    let desc = "ئاسایی"; let icon = "🌤️";
+                    
+                    if(mainW.includes('cloud')) { desc = "هەور"; icon = "☁️"; }
+                    else if(mainW.includes('rain') || mainW.includes('drizzle')) { desc = "باران"; icon = "🌧️"; }
+                    else if(mainW.includes('clear')) { desc = "ڕوون"; icon = "☀️"; }
+                    else if(mainW.includes('snow')) { desc = "بەفر"; icon = "❄️"; }
+                    else if(mainW.includes('thunder')) { desc = "بروسکە"; icon = "⛈️"; }
+
+                    // نوێکردنەوەی کاش بە داتای زوڵاڵ
+                    cachedWeather[i] = {
+                        name: city.ku,
+                        temp: `${Math.round(data.main.temp)}°C`,
+                        desc: desc,
+                        icon: icon
+                    };
+                }
+            } catch(e) { console.log("سێرڤەری دەرەکی وەڵامی نەدا، داتای جێگیر بەکاردێت"); }
+        }
+    }
+
+    function updateUiDateTime() {
         const now = new Date();
+        let hh = String(now.getHours()).padStart(2, '0');
+        let mm = String(now.getMinutes()).padStart(2, '0');
+        let ss = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('pClock').innerText = `${hh}:${mm}:${ss}`;
         
-        // کاتژمێر
-        let hours = String(now.getHours()).padStart(2, '0');
-        let minutes = String(now.getMinutes()).padStart(2, '0');
-        let seconds = String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('liveClock').innerText = `${hours}:${minutes}:${seconds}`;
-        
-        // مێژووی هیجری بە شێوازی فەرمی و جوان
         try {
-            const options = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
-            let hijriStr = new Intl.DateTimeFormat('ar-SA', options).format(now);
-            
-            // وەرگێڕانی ناوی مانگە عەرەبییەکان بۆ کوردی ئەگەر پێویست بوو
-            hijriStr = hijriStr.replace('هـ', 'کۆچی');
-            document.getElementById('hijriDate').innerText = hijriStr;
+            const hijriOpt = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
+            let hijriStr = new Intl.DateTimeFormat('ar-SA', hijriOpt).format(now).replace('هـ', 'کۆچی');
+            let gregStr = " - ٢٥ أيار"; 
+            document.getElementById('pDates').innerText = hijriStr + gregStr;
         } catch (e) {
-            document.getElementById('hijriDate').innerText = "٧ ذو الحجة ١٤٤٧";
+            document.getElementById('pDates').innerText = "٧ ذو الحجة ١٤٤٧ کۆچی - ٢٥ أيار";
         }
     }
 
     function showMiniWeather(index) {
-        const data = kurdistanWeatherStatic[index];
-        document.getElementById('miniCity').innerText = data.name;
-        document.getElementById('miniTemp').innerText = data.temp;
-        document.getElementById('miniDesc').innerText = "(" + data.desc + ")";
-        document.getElementById('miniIcon').innerText = data.icon;
+        const data = cachedWeather[index];
+        if(!data) return;
+        document.getElementById('pCity').innerText = data.name;
+        document.getElementById('pTemp').innerText = data.temp;
+        document.getElementById('pDesc').innerText = data.desc;
+        document.getElementById('pIcon').innerText = data.icon;
     }
 
     function cycleWeather() {
-        const el = document.getElementById('weatherMini');
+        const el = document.getElementById('pWeatherBox');
         el.style.opacity = 0;
         
         setTimeout(() => {
-            currentCityIndex = (currentCityIndex + 1) % kurdistanWeatherStatic.length;
+            currentCityIndex = (currentCityIndex + 1) % kurdistanCities.length;
             showMiniWeather(currentCityIndex);
             el.style.opacity = 1;
         }, 400);
