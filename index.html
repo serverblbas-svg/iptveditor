@@ -125,7 +125,6 @@
     let hls = new Hls();
     let currentActiveUrl = "";
 
-    // ڕێکخستنی شارەکانی کوردستان بەپێی پۆتانەکانی لۆکاڵی خۆیان (Open-Meteo)
     const kurdistanCities = [
         { name: "هەولێر", lat: 36.1911, lon: 44.0092 },
         { name: "سلێمانی", lat: 35.5612, lon: 45.4385 },
@@ -134,7 +133,6 @@
         { name: "هەڵەبجە", lat: 35.1778, lon: 45.9861 }
     ];
 
-    // لۆجیکی کۆدی کەشوهەواکەی خۆت
     const weatherCodes = {
         0: { text: 'Clear Sky', icon: '☀️' },
         1: { text: 'Mainly Clear', icon: '🌤️' },
@@ -157,26 +155,21 @@
         95: { text: 'Thunderstorm', icon: '⛈️' }
     };
 
-    // کۆگا کردنی داتاکان دوای هێنان
     let cachedWeather = {};
     let currentCityIndex = 0;
 
     window.onload = function() {
         startLoading();
         
-        // یەکەمجار داتا ڕاستەقینەکان دەهێنێت
         fetchLiveWeather().then(() => {
             showMiniWeather(0);
         });
 
-        // ٥ خولەک جارێک خۆکارانە داتای نوێ لە Open-Meteo وە دەهێنێت
         setInterval(fetchLiveWeather, 300000);
         
-        // نوێکردنەوەی کاتژمێر
         updateUiDateTime();
         setInterval(updateUiDateTime, 1000);
         
-        // ٥ چرکە جارێک سڵایدی نێوان شارەکان دەکات
         setInterval(cycleWeather, 5000);
     };
 
@@ -224,6 +217,57 @@
         }, 400);
     }
 
+    // لۆجیکی حیسابکردنی ڕۆژژمێری فەرمی کوردی هەرێمی کوردستان
+    function getKurdishDate(date) {
+        const kurdishMonths = [
+            "خاکەلێوە", "بانەمەڕ", "جۆزەردان", 
+            "پوشپەڕ", "گەلاوێژ", "خەرمانان", 
+            "ڕەزبەر", "گەڵاڕێزان", "سەرماوەز", 
+            "بەفرانبار", "ڕێبەندان", "ڕەشەمە"
+        ];
+
+        // وەرگرتنی ڕۆژ و مانگ و ساڵی زاینی لۆکاڵی
+        const gYear = date.getFullYear();
+        const gMonth = date.getMonth() + 1;
+        const gDay = date.getDate();
+
+        // دیاریکردنی ساڵی کوردی (جیاوازی پۆڵایینی ٧٨٨ ساڵ)
+        let kYear = gYear + 788;
+        let kMonth = 0;
+        let kDay = 0;
+
+        // لۆجیکی وردی گۆڕینی ڕۆژەکان بەپێی نەورۆز (٢١ی ئازار)
+        const isLeapG = ((gYear % 4 === 0 && gYear % 100 !== 0) || (gYear % 400 === 0));
+        let daysSinceNewroz = 0;
+
+        // دروستکردنی کاتی نەورۆزی هەمان ساڵ
+        const newrozDate = new Date(gYear, 2, 21); // ٢١ی ئازار
+        const currentTarget = new Date(gYear, gMonth - 1, gDay);
+
+        if (currentTarget >= newrozDate) {
+            const diffTime = Math.abs(currentTarget - newrozDate);
+            daysSinceNewroz = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        } else {
+            // ئەگەر پێش نەورۆز بێت، دەکەوێتە ساڵی پێشووتر لە ڕووی کوردییەوە
+            kYear--;
+            const prevNewroz = new Date(gYear - 1, 2, 21);
+            const diffTime = Math.abs(currentTarget - prevNewroz);
+            daysSinceNewroz = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        // دابەشکردنی ڕۆژەکان بەسەر مانگە کوردییەکاندا (٦ مانگی یەکەم ٣١ ڕۆژ، ٥ مانگی دووەم ٣٠ ڕۆژ، مانگی کۆتا ٢٩ یان ٣٠ ڕۆژ)
+        if (daysSinceNewroz <= 186) { // ٦ مانگی یەکەم
+            kMonth = Math.floor((daysSinceNewroz - 1) / 31);
+            kDay = ((daysSinceNewroz - 1) % 31) + 1;
+        } else { // ٦ مانگی دووەم
+            const remainingDays = daysSinceNewroz - 186;
+            kMonth = 6 + Math.floor((remainingDays - 1) / 30);
+            kDay = ((remainingDays - 1) % 30) + 1;
+        }
+
+        return `${kDay}ی ${kurdishMonths[kMonth]}ی ${kYear}`;
+    }
+
     function updateUiDateTime() {
         const now = new Date();
         let hh = String(now.getHours()).padStart(2, '0');
@@ -231,14 +275,18 @@
         let ss = String(now.getSeconds()).padStart(2, '0');
         document.getElementById('pClock').innerText = `${hh}:${mm}:${ss}`;
         
+        // دروستکردنی مێژووی کۆچی
+        let hijriStr = "";
         try {
             const hijriOpt = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
-            let hijriStr = new Intl.DateTimeFormat('ar-SA', hijriOpt).format(now).replace('هـ', 'کۆچی');
-            let gregStr = " - ٢٥ أيار"; 
-            document.getElementById('pDates').innerText = hijriStr + gregStr;
+            hijriStr = new Intl.DateTimeFormat('ar-SA', hijriOpt).format(now).replace('هـ', 'کۆچی');
         } catch (e) {
-            document.getElementById('pDates').innerText = "٧ ذو الحجة ١٤٤٧ کۆچی - ٢٥ أيار";
+            hijriStr = "٧ ذو الحجة ١٤٤٧ کۆچی";
         }
+
+        // تێکەڵکردنی مێژووی کۆچی + مێژووی فەرمی کوردی ٢٧٢٦
+        const kurdishDateStr = getKurdishDate(now);
+        document.getElementById('pDates').innerText = `${hijriStr} ❖ ${kurdishDateStr}`;
     }
 
     async function startLoading() {
