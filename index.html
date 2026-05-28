@@ -136,7 +136,6 @@
 </div>
 
 <script>
-    // بەستەرە نوێیەکانی جەنابت
     const M3U_URL = "https://xtream-ie.net/get.php?username=iptv2026&password=iptv2026&type=m3u_plus";
     const EPG_URL = "https://xtream-ie.net/xmltv.php?username=iptv2026&password=iptv2026";
     
@@ -243,14 +242,10 @@
 
     async function startLoading() {
         try {
-            // بارکردنی کەناڵەکان
             const r = await fetch(M3U_URL);
             const d = await r.text();
             parseM3U(d);
-            
-            // بارکردنی EPG بە شێوەی پاسیڤ لە باکگراوند
             fetchEPG();
-
             document.getElementById('loadingOverlay').style.display = 'none';
         } catch(e) { 
             document.getElementById('loadingStatus').innerHTML = "<span style='color:red;'>خەتا لە هێنانی بەستەرەکە! دڵنیابەوە لە ئینتەرنێتەکەت.</span>";
@@ -303,10 +298,14 @@
     }
 
     function renderC(list) {
-        document.getElementById('cList').innerHTML = list.map(x => {
+        document.getElementById('cList').innerHTML = list.map((x, index) => {
             const img = (x.logo) ? x.logo : `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=f0b90b&color=000&bold=true`;
             const isActive = (x.url === currentActiveUrl) ? 'active-channel' : '';
-            return `<div class="chan-card ${isActive}" onclick="play('${x.url}', '${x.name}', '${x.id}', this)"><img src="${img}"><span>${x.name}</span></div>`;
+            return `<div class="chan-card ${isActive}" onclick="play('${x.url}', '${x.name}', '${x.id}', this)">
+                        <span style="min-width: 25px; font-weight: bold; color: var(--primary);">${index + 1}.</span>
+                        <img src="${img}">
+                        <span>${x.name}</span>
+                    </div>`;
         }).join('');
     }
 
@@ -316,7 +315,6 @@
         document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active-channel'));
         if(element) element.classList.add('active-channel');
 
-        // نیشاندانی زانیاری بەرنامەکان (EPG)
         const epgDisplay = document.getElementById('epgDisplay');
         if(id && epgData[id] && epgData[id].length > 0) {
             const currentProg = epgData[id][0].title;
