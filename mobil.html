@@ -6,16 +6,60 @@
     <title>KAMAL IPTV MOBILE</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #f0b90b; --bg: #05080a; --sidebar: #0d1117; --border: #1f2937; }
+        :root { 
+            --primary: #f0b90b; 
+            --bg: #05080a; 
+            --sidebar: #0d1117; 
+            --border: #1f2937; 
+            --glass: rgba(255, 255, 255, 0.07);
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden; }
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh; 
+            overflow: hidden; 
+            -webkit-font-smoothing: antialiased;
+        }
         
         /* شاشەی بارکردن */
-        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 45px; height: 45px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #loadingOverlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #000; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 10000; 
+        }
+        .spinner { 
+            border: 4px solid rgba(255,255,255,0.1); 
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%; 
+            border-left-color: var(--primary); 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
 
-        .main-container { display: flex; flex-direction: column; height: 100vh; padding: 12px; justify-content: flex-start; align-items: center; }
+        .main-container { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            padding: 10px; 
+            justify-content: flex-start; 
+            align-items: center; 
+        }
         
         /* 📱 هێڵی زانیاری شووشەیی مۆدێرن */
         .phone-style-bar {
@@ -23,69 +67,246 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            background: rgba(255, 255, 255, 0.07);
+            background: linear-gradient(135deg, rgba(240, 185, 11, 0.1), rgba(255, 255, 255, 0.05));
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px 14px;
-            border-radius: 16px;
+            padding: 10px 16px;
+            border-radius: 20px;
             margin-bottom: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
         
         .phone-time-section { display: flex; flex-direction: column; align-items: flex-start; }
-        .phone-clock { font-size: 1.15rem; font-weight: bold; color: #ffffff; line-height: 1.2; }
-        .phone-date { font-size: 0.65rem; color: rgba(255, 255, 255, 0.7); margin-top: 1px; }
+        .phone-clock { 
+            font-size: 1.3rem; 
+            font-weight: 700; 
+            color: #ffffff; 
+            line-height: 1.2; 
+            letter-spacing: 1px;
+        }
+        .phone-date { 
+            font-size: 0.7rem; 
+            color: rgba(255, 255, 255, 0.7); 
+            margin-top: 2px; 
+        }
         
-        .phone-weather-section { display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.35); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.05); }
-        .phone-temp { font-size: 1rem; font-weight: bold; color: var(--primary); }
-        .phone-city-details { display: flex; flex-direction: column; font-size: 0.65rem; text-align: right; }
-        .phone-gregorian-date { color: rgba(240, 185, 11, 0.85); font-size: 0.65rem; }
+        .phone-weather-section { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            background: rgba(0, 0, 0, 0.3); 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            transition: opacity 0.4s ease-in-out;
+        }
+        .phone-temp { 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            color: var(--primary); 
+        }
+        .phone-city-details { 
+            display: flex; 
+            flex-direction: column; 
+            font-size: 0.7rem; 
+            text-align: right; 
+        }
+        .phone-gregorian-date { 
+            color: rgba(240, 185, 11, 0.85); 
+            font-size: 0.65rem; 
+        }
 
         /* ڤیدیۆ پلەیەر */
-        video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: 1px solid var(--border); background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+        video { 
+            width: 100%; 
+            aspect-ratio: 16/9; 
+            border-radius: 16px; 
+            border: 1px solid var(--border); 
+            background: #000; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6); 
+        }
         
         /* دوگمەکانی خوار ڤیدیۆکە */
-        .mobile-controls { display: flex; gap: 10px; width: 100%; margin: 12px 0; }
-        .mobile-btn { flex: 1; background: linear-gradient(145deg, #111720, #0d1117); border: 1px solid var(--border); color: #fff; padding: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; transition: 0.1s; }
-        .mobile-btn:active { background: var(--primary); color: #000; border-color: var(--primary); }
+        .mobile-controls { 
+            display: flex; 
+            gap: 12px; 
+            width: 100%; 
+            margin: 14px 0; 
+        }
+        .mobile-btn { 
+            flex: 1; 
+            background: linear-gradient(145deg, #111720, #0d1117); 
+            border: 1px solid var(--border); 
+            color: #fff; 
+            padding: 16px; 
+            font-weight: bold; 
+            border-radius: 14px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+            font-size: 0.95rem; 
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .mobile-btn:active { 
+            background: var(--primary); 
+            color: #000; 
+            border-color: var(--primary); 
+            transform: scale(0.96);
+        }
 
         /* مینیوەکانی مۆبایل (دێنە سەرەوە لە خوارەوە) */
         .bottom-sheet { 
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 65vh; 
-            background: #090d13; z-index: 999; border-radius: 24px 24px 0 0; 
-            border-top: 2px solid var(--border); transform: translateY(100%); 
-            transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94);
-            display: flex; flex-direction: column; box-shadow: 0 -10px 30px rgba(0,0,0,0.7);
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 70vh; 
+            background: linear-gradient(180deg, #0d1117, #05080a); 
+            z-index: 999; 
+            border-radius: 28px 28px 0 0; 
+            border-top: 2px solid var(--primary); 
+            transform: translateY(100%); 
+            transition: transform 0.35s cubic-bezier(0.1, 0.76, 0.55, 0.94);
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
         }
         .bottom-sheet.open { transform: translateY(0); }
         
-        .sheet-header { padding: 16px; font-size: 1rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .sheet-close { background: rgba(255,255,255,0.05); border: none; color: #ff4444; font-size: 1.1rem; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .sheet-content { flex: 1; overflow-y: auto; padding: 12px; }
+        .sheet-header { 
+            padding: 18px 20px; 
+            font-size: 1.05rem; 
+            font-weight: bold; 
+            color: var(--primary); 
+            border-bottom: 1px solid var(--border); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .sheet-close { 
+            background: rgba(255,255,255,0.08); 
+            border: none; 
+            color: #ff4444; 
+            font-size: 1.2rem; 
+            border-radius: 50%; 
+            width: 36px; 
+            height: 36px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .sheet-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 14px; 
+        }
         
         /* مینیوی گرووپ و کەناڵەکان لەسەر مۆبایل */
-        .group-btn { width: 100%; padding: 14px; background: rgba(255,255,255,0.04); border: none; color: #ccc; cursor: pointer; text-align: right; border-radius: 8px; margin-bottom: 6px; font-size: 0.9rem; }
-        .group-btn.active-group { background: var(--primary) !important; color: black !important; font-weight: bold; }
+        .group-btn { 
+            width: 100%; 
+            padding: 16px; 
+            background: rgba(255,255,255,0.04); 
+            border: none; 
+            color: #ccc; 
+            cursor: pointer; 
+            text-align: right; 
+            border-radius: 12px; 
+            margin-bottom: 8px; 
+            font-size: 0.95rem; 
+            transition: all 0.2s;
+        }
+        .group-btn:active { background: rgba(240,185,11,0.15); }
+        .group-btn.active-group { 
+            background: linear-gradient(90deg, var(--primary), #d4a009) !important; 
+            color: black !important; 
+            font-weight: bold; 
+            box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3);
+        }
 
-        .chan-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.04); border-radius: 10px; cursor: pointer; margin-bottom: 6px; }
-        .chan-card img { width: 38px; height: 38px; object-fit: contain; background: white; border-radius: 6px; }
-        .chan-card span { font-size: 0.9rem; }
-        .chan-card.active-channel { background: linear-gradient(90deg, rgba(240,185,11,0.2), rgba(240,185,11,0.05)) !important; border-right: 4px solid var(--primary); color: var(--primary) !important; font-weight: bold; }
+        .chan-card { 
+            display: flex; 
+            align-items: center; 
+            gap: 14px; 
+            padding: 14px; 
+            background: rgba(255,255,255,0.04); 
+            border-radius: 14px; 
+            cursor: pointer; 
+            margin-bottom: 8px; 
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+        .chan-card:active { 
+            background: rgba(255,255,255,0.08); 
+            transform: scale(0.98);
+        }
+        .chan-card img { 
+            width: 42px; 
+            height: 42px; 
+            object-fit: contain; 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .chan-card span { 
+            font-size: 0.95rem; 
+            font-weight: 500;
+        }
+        .chan-card.active-channel { 
+            background: linear-gradient(90deg, rgba(240,185,11,0.2), rgba(240,185,11,0.05)) !important; 
+            border-right: 4px solid var(--primary); 
+            color: var(--primary) !important; 
+            font-weight: bold; 
+        }
         
-        .epg-info { font-size: 0.8rem; color: #aaa; background: rgba(255, 255, 255, 0.04); padding: 8px; border-radius: 8px; display: none; width: 100%; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
+        .epg-info { 
+            font-size: 0.85rem; 
+            color: #aaa; 
+            background: rgba(255, 255, 255, 0.04); 
+            padding: 10px; 
+            border-radius: 10px; 
+            display: none; 
+            width: 100%; 
+            text-align: center; 
+            border: 1px solid rgba(255,255,255,0.02); 
+            margin-top: 8px;
+        }
 
         /* خەڵفی تاریک بۆ تەڵخکردنی پشتەوە */
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 990; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+        .overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.6); 
+            z-index: 990; 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px); 
+        }
         .overlay.show { display: block; }
+        
+        /* ئەنیمەیشنی لۆدین */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .loading-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
     </style>
 </head>
 <body>
 
 <div id="loadingOverlay">
     <div class="spinner"></div>
-    <h2 style="color:var(--primary); margin-top:16px; font-size: 1.3rem;">KAMAL PRO MOBILE</h2>
-    <p id="loadingStatus" style="font-size:0.75rem; color:#999;">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان...</p>
+    <h2 style="color:var(--primary); margin-top:20px; font-size: 1.4rem; letter-spacing: 2px;">KAMAL PRO</h2>
+    <p id="loadingStatus" style="font-size:0.8rem; color:#888; margin-top:8px;">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان...</p>
 </div>
 
 <div class="overlay" id="screenOverlay" onclick="closeSheets()"></div>
@@ -99,9 +320,9 @@
         </div>
         
         <div id="pWeatherBox" class="phone-weather-section">
-            <span id="pIcon" style="font-size: 1.1rem;">☀️</span>
+            <span id="pIcon" style="font-size: 1.3rem;">☀️</span>
             <div class="phone-city-details">
-                <div><span id="pCity" style="font-weight: bold; color: #fff;">هەولێر</span> • <span id="pDesc" style="color: rgba(255,255,255,0.6); font-size: 0.6rem;">Clear</span></div>
+                <div><span id="pCity" style="font-weight: bold; color: #fff;">هەولێر</span> • <span id="pDesc" style="color: rgba(255,255,255,0.6); font-size: 0.65rem;">Clear</span></div>
                 <span id="pGregorian" class="phone-gregorian-date">بار دەکات...</span>
             </div>
             <span id="pTemp" class="phone-temp">--°C</span>
@@ -109,7 +330,7 @@
     </div>
 
     <video id="player" controls autoplay playsinline></video>
-    <div id="title" style="margin: 10px 0; color:var(--primary); font-weight:bold; font-size:1.05rem; text-align:center;">KAMAL PRO ULTRA</div>
+    <div id="title" style="margin: 12px 0; color:var(--primary); font-weight:bold; font-size:1.1rem; text-align:center;">KAMAL PRO ULTRA</div>
     <div id="epgDisplay" class="epg-info"></div>
 
     <div class="mobile-controls">
@@ -198,7 +419,12 @@
                 if(res.ok) {
                     const data = await res.json();
                     const info = weatherCodes[data.current.weather_code] || { text: 'Clear Sky', icon: '☀️' };
-                    cachedWeather[i] = { name: city.name, temp: `${Math.round(data.current.temperature_2m)}°C`, desc: info.text, icon: info.icon };
+                    cachedWeather[i] = { 
+                        name: city.name, 
+                        temp: `${Math.round(data.current.temperature_2m)}°C`, 
+                        desc: info.text, 
+                        icon: info.icon 
+                    };
                 }
             } catch(e) { console.log("Weather fetch error"); }
         }
@@ -257,10 +483,11 @@
             const r = await fetch(M3U_URL);
             const d = await r.text();
             parseM3U(d);
-            fetchEPG();
+            await fetchEPG();
             document.getElementById('loadingOverlay').style.display = 'none';
         } catch(e) { 
-            document.getElementById('loadingStatus').innerHTML = "<span style='color:red;'>خەتایەک لە هێنانەوەی مەلەفەکە هەیە!</span>";
+            document.getElementById('loadingStatus').innerHTML = "<span style='color:#ff4444;'>خەتایەک لە هێنانەوەی مەلەفەکە هەیە!</span>";
+            console.error(e);
         }
     }
 
@@ -284,7 +511,8 @@
 
     function parseM3U(data) {
         const lines = data.split('\n');
-        let obj = {}; allData = []; 
+        let obj = {}; 
+        allData = []; 
         lines.forEach(l => {
             if(l.startsWith('#EXTINF:')) {
                 obj.name = l.split(',')[1] || "Channel";
@@ -295,7 +523,9 @@
                 obj.logo = i ? i[1] : "";
                 obj.id = cid ? cid[1] : "";
             } else if(l.startsWith('http')) {
-                obj.url = l.trim(); allData.push(obj); obj = {};
+                obj.url = l.trim(); 
+                allData.push(obj); 
+                obj = {};
             }
         });
         renderG();
@@ -304,14 +534,21 @@
 
     function renderG() {
         const gs = ["هەمووی", ...new Set(allData.map(x => x.group))];
-        document.getElementById('gList').innerHTML = gs.map(g => `<button class="group-btn" onclick="filter('${g}', this)">${g}</button>`).join('');
+        document.getElementById('gList').innerHTML = gs.map(g => 
+            `<button class="group-btn" onclick="filter('${g.replace(/'/g, "\\'")}', this)">${g}</button>`
+        ).join('');
     }
 
     function renderC(list) {
         document.getElementById('cList').innerHTML = list.map(x => {
             const img = (x.logo) ? x.logo : `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=f0b90b&color=000&bold=true`;
             const isActive = (x.url === currentActiveUrl) ? 'active-channel' : '';
-            return `<div class="chan-card ${isActive}" onclick="play('${x.url}', '${x.name}', '${x.id}', this)"><img src="${img}"><span>${x.name}</span></div>`;
+            const safeName = x.name.replace(/'/g, "\\'");
+            const safeId = x.id.replace(/'/g, "\\'");
+            return `<div class="chan-card ${isActive}" onclick="play('${x.url}', '${safeName}', '${safeId}', this)">
+                        <img src="${img}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=f0b90b&color=000&bold=true'">
+                        <span>${x.name}</span>
+                    </div>`;
         }).join('');
     }
 
@@ -323,17 +560,23 @@
 
         const epgDisplay = document.getElementById('epgDisplay');
         if(id && epgData[id] && epgData[id].length > 0) {
-            epgDisplay.innerText = `ئێستا پێشکەش دەکرێت: ${epgData[id][0].title}`;
+            epgDisplay.innerText = `📺 ئێستا پێشکەش دەکرێت: ${epgData[id][0].title}`;
             epgDisplay.style.display = "block";
         } else {
             epgDisplay.style.display = "none";
         }
 
         if(Hls.isSupported()) { 
-            hls.destroy(); hls = new Hls(); hls.loadSource(u); hls.attachMedia(video); 
-            hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play()); 
+            hls.destroy(); 
+            hls = new Hls(); 
+            hls.loadSource(u); 
+            hls.attachMedia(video); 
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play()); 
         }
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = u; video.play(); }
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
+            video.src = u; 
+            video.play(); 
+        }
         
         closeSheets();
     }
@@ -344,7 +587,7 @@
         renderC(g === "هەمووی" ? allData : allData.filter(x => x.group === g));
         
         if(btnElement) {
-            openSheet('channels'); // ڕاستەوخۆ دوای هەڵبژاردنی گرووپ مینیوی کەناڵەکان دەکاتەوە
+            openSheet('channels');
         }
     }
 </script>
