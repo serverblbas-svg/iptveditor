@@ -1,33 +1,38 @@
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KAMAL PRO ULTRA</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest">
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
         :root {
             --gold: #f0b90b;
             --gold-dim: #c9940a;
-            --gold-glow: rgba(240,185,11,0.18);
-            --gold-ultra: rgba(240,185,11,0.06);
+            --gold-glow: rgba(240, 185, 11, 0.18);
+            --gold-ultra: rgba(240, 185, 11, 0.06);
             --bg: #060a0e;
             --surface: #0b1018;
             --surface2: #0f1520;
             --surface3: #141c28;
-            --border: rgba(240,185,11,0.12);
-            --border-dim: rgba(255,255,255,0.06);
+            --border: rgba(240, 185, 11, 0.12);
+            --border-dim: rgba(255, 255, 255, 0.06);
             --text: #e8eaf0;
-            --text-dim: rgba(232,234,240,0.5);
-            --text-muted: rgba(232,234,240,0.28);
+            --text-dim: rgba(232, 234, 240, 0.5);
+            --text-muted: rgba(232, 234, 240, 0.28);
             --red: #e53935;
             --sidebar-w: 220px;
             --chan-w: 290px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             background: var(--bg);
@@ -36,20 +41,23 @@
             height: 100vh;
             overflow: hidden;
             background-image:
-                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(240,185,11,0.07) 0%, transparent 60%),
-                radial-gradient(ellipse 40% 30% at 80% 90%, rgba(240,185,11,0.04) 0%, transparent 50%);
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(240, 185, 11, 0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 30% at 80% 90%, rgba(240, 185, 11, 0.04) 0%, transparent 50%);
         }
 
         /* ════════════════════════════════
            LOADING SCREEN
         ════════════════════════════════ */
         #loadingOverlay {
-            position: fixed; inset: 0;
+            position: fixed;
+            inset: 0;
             background: #000;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             z-index: 10000;
-            background-image: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(240,185,11,0.06) 0%, transparent 70%);
+            background-image: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(240, 185, 11, 0.06) 0%, transparent 70%);
         }
 
         .load-logo {
@@ -76,19 +84,33 @@
 
         .load-spinner-wrap {
             position: relative;
-            width: 70px; height: 70px;
+            width: 70px;
+            height: 70px;
             margin-bottom: 32px;
         }
 
         .load-ring {
-            position: absolute; inset: 0;
+            position: absolute;
+            inset: 0;
             border-radius: 50%;
             border: 2px solid transparent;
             animation: spin 1.4s linear infinite;
         }
-        .load-ring:nth-child(1) { border-top-color: var(--gold); animation-duration: 1.2s; }
-        .load-ring:nth-child(2) { border-right-color: rgba(240,185,11,0.4); animation-duration: 1.8s; inset: 8px; animation-direction: reverse; }
-        .load-ring:nth-child(3) { border-bottom-color: rgba(240,185,11,0.2); animation-duration: 2.4s; inset: 16px; }
+        .load-ring:nth-child(1) {
+            border-top-color: var(--gold);
+            animation-duration: 1.2s;
+        }
+        .load-ring:nth-child(2) {
+            border-right-color: rgba(240, 185, 11, 0.4);
+            animation-duration: 1.8s;
+            inset: 8px;
+            animation-direction: reverse;
+        }
+        .load-ring:nth-child(3) {
+            border-bottom-color: rgba(240, 185, 11, 0.2);
+            animation-duration: 2.4s;
+            inset: 16px;
+        }
 
         .load-dot {
             position: absolute;
@@ -99,9 +121,23 @@
             animation: pulse-dot 1.2s ease-in-out infinite;
         }
 
-        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.6;transform:scale(0.8);} }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(0.8);
+            }
+        }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         #loadingStatus {
             font-size: 0.8rem;
@@ -115,7 +151,7 @@
         .load-bar-wrap {
             width: 240px;
             height: 2px;
-            background: rgba(255,255,255,0.06);
+            background: rgba(255, 255, 255, 0.06);
             border-radius: 2px;
             overflow: hidden;
             margin-bottom: 20px;
@@ -127,12 +163,22 @@
             border-radius: 2px;
             animation: load-sweep 1.8s ease-in-out infinite;
         }
-        @keyframes load-sweep { 0%{transform:translateX(-200%);} 100%{transform:translateX(500%);} }
+        @keyframes load-sweep {
+            0% {
+                transform: translateX(-200%);
+            }
+            100% {
+                transform: translateX(500%);
+            }
+        }
 
         /* ════════════════════════════════
            LAYOUT
         ════════════════════════════════ */
-        .wrapper { display: flex; height: 100vh; }
+        .wrapper {
+            display: flex;
+            height: 100vh;
+        }
 
         /* ════════════════════════════════
            LEFT SIDEBAR - GROUPS
@@ -150,8 +196,10 @@
         .col-groups::before {
             content: '';
             position: absolute;
-            top: 0; right: 0;
-            width: 1px; height: 100%;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
             background: linear-gradient(to bottom, transparent, var(--gold), transparent);
             opacity: 0.3;
         }
@@ -175,7 +223,7 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border);
-            background: rgba(240,185,11,0.03);
+            background: rgba(240, 185, 11, 0.03);
             position: relative;
             flex-shrink: 0;
         }
@@ -210,7 +258,7 @@
 
         .search-input {
             width: 100%;
-            background: rgba(255,255,255,0.04);
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border-dim);
             border-radius: 8px;
             padding: 8px 12px;
@@ -223,11 +271,13 @@
         }
 
         .search-input:focus {
-            border-color: rgba(240,185,11,0.35);
-            box-shadow: 0 0 0 3px rgba(240,185,11,0.07);
+            border-color: rgba(240, 185, 11, 0.35);
+            box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.07);
         }
 
-        .search-input::placeholder { color: var(--text-muted); }
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
 
         /* ════════════════════════════════
            SCROLLABLE
@@ -238,10 +288,19 @@
             padding: 8px;
         }
 
-        .scrollable::-webkit-scrollbar { width: 4px; }
-        .scrollable::-webkit-scrollbar-track { background: transparent; }
-        .scrollable::-webkit-scrollbar-thumb { background: var(--gold-glow); border-radius: 4px; }
-        .scrollable::-webkit-scrollbar-thumb:hover { background: rgba(240,185,11,0.3); }
+        .scrollable::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollable::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollable::-webkit-scrollbar-thumb {
+            background: var(--gold-glow);
+            border-radius: 4px;
+        }
+        .scrollable::-webkit-scrollbar-thumb:hover {
+            background: rgba(240, 185, 11, 0.3);
+        }
 
         /* ════════════════════════════════
            GROUP BUTTONS
@@ -269,8 +328,10 @@
         .group-btn::before {
             content: '';
             position: absolute;
-            left: 0; top: 0;
-            width: 3px; height: 100%;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
             background: var(--gold);
             border-radius: 0 3px 3px 0;
             transform: scaleY(0);
@@ -278,30 +339,36 @@
         }
 
         .group-btn:hover {
-            background: rgba(240,185,11,0.07);
+            background: rgba(240, 185, 11, 0.07);
             color: var(--text);
             border-color: var(--border);
         }
 
         .group-btn.active-group {
-            background: linear-gradient(90deg, rgba(240,185,11,0.18), rgba(240,185,11,0.07)) !important;
+            background: linear-gradient(90deg, rgba(240, 185, 11, 0.18), rgba(240, 185, 11, 0.07)) !important;
             color: var(--gold) !important;
             font-weight: 600;
-            border-color: rgba(240,185,11,0.25) !important;
-            box-shadow: 0 2px 16px rgba(240,185,11,0.08);
+            border-color: rgba(240, 185, 11, 0.25) !important;
+            box-shadow: 0 2px 16px rgba(240, 185, 11, 0.08);
         }
 
-        .group-btn.active-group::before { transform: scaleY(1); }
+        .group-btn.active-group::before {
+            transform: scaleY(1);
+        }
 
         .group-dot {
-            width: 5px; height: 5px;
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
             background: var(--text-muted);
             flex-shrink: 0;
             transition: background 0.18s;
         }
 
-        .group-btn.active-group .group-dot { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+        .group-btn.active-group .group-dot {
+            background: var(--gold);
+            box-shadow: 0 0 6px var(--gold);
+        }
 
         /* ════════════════════════════════
            CHANNEL CARDS
@@ -322,26 +389,30 @@
         }
 
         .chan-card:hover {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-color: var(--border-dim);
         }
 
         .chan-card img {
-            width: 38px; height: 38px;
+            width: 38px;
+            height: 38px;
             object-fit: contain;
             background: white;
             border-radius: 6px;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
         }
 
         .chan-card.active-channel {
-            background: linear-gradient(90deg, rgba(240,185,11,0.14), rgba(240,185,11,0.05)) !important;
-            border-color: rgba(240,185,11,0.3) !important;
-            box-shadow: 0 0 20px rgba(240,185,11,0.08), inset 3px 0 0 var(--gold);
+            background: linear-gradient(90deg, rgba(240, 185, 11, 0.14), rgba(240, 185, 11, 0.05)) !important;
+            border-color: rgba(240, 185, 11, 0.3) !important;
+            box-shadow: 0 0 20px rgba(240, 185, 11, 0.08), inset 3px 0 0 var(--gold);
         }
 
-        .chan-card.active-channel .chan-name { color: var(--gold); font-weight: 600; }
+        .chan-card.active-channel .chan-name {
+            color: var(--gold);
+            font-weight: 600;
+        }
 
         .chan-num {
             font-family: 'Rajdhani', sans-serif;
@@ -352,7 +423,9 @@
             flex-shrink: 0;
         }
 
-        .chan-card.active-channel .chan-num { color: var(--gold-dim); }
+        .chan-card.active-channel .chan-num {
+            color: var(--gold-dim);
+        }
 
         .chan-name {
             font-size: 0.82rem;
@@ -377,8 +450,19 @@
             display: none;
         }
 
-        .chan-card.active-channel .live-badge { display: block; animation: blink-live 1.5s ease-in-out infinite; }
-        @keyframes blink-live { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+        .chan-card.active-channel .live-badge {
+            display: block;
+            animation: blink-live 1.5s ease-in-out infinite;
+        }
+        @keyframes blink-live {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
 
         /* ════════════════════════════════
            PLAYER AREA
@@ -404,13 +488,13 @@
             justify-content: space-between;
             width: 100%;
             max-width: 860px;
-            background: rgba(15,21,32,0.85);
+            background: rgba(15, 21, 32, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             padding: 10px 20px;
             border-radius: 14px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(240,185,11,0.04);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(240, 185, 11, 0.04);
             flex-shrink: 0;
         }
 
@@ -448,7 +532,7 @@
             align-items: center;
             gap: 14px;
             padding: 8px 18px;
-            background: rgba(240,185,11,0.05);
+            background: rgba(240, 185, 11, 0.05);
             border: 1px solid var(--border);
             border-radius: 40px;
             cursor: default;
@@ -456,18 +540,36 @@
         }
 
         .weather-icon-wrap {
-            width: 36px; height: 36px;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(240,185,11,0.1);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(240, 185, 11, 0.1);
             border-radius: 50%;
             font-size: 1.1rem;
             flex-shrink: 0;
         }
 
-        .weather-details { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
-        .weather-city { font-weight: 600; color: #fff; font-size: 0.82rem; }
-        .weather-desc { color: var(--text-muted); font-size: 0.7rem; }
-        .weather-gregorian { color: var(--gold-dim); font-size: 0.68rem; }
+        .weather-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 1px;
+        }
+        .weather-city {
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.82rem;
+        }
+        .weather-desc {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+        .weather-gregorian {
+            color: var(--gold-dim);
+            font-size: 0.68rem;
+        }
 
         .weather-temp {
             font-family: 'Rajdhani', sans-serif;
@@ -491,7 +593,7 @@
             position: absolute;
             inset: -1px;
             border-radius: 15px;
-            background: linear-gradient(135deg, rgba(240,185,11,0.4), transparent 40%, transparent 60%, rgba(240,185,11,0.2));
+            background: linear-gradient(135deg, rgba(240, 185, 11, 0.4), transparent 40%, transparent 60%, rgba(240, 185, 11, 0.2));
             z-index: 0;
             pointer-events: none;
         }
@@ -500,7 +602,7 @@
             position: absolute;
             inset: -20px;
             border-radius: 20px;
-            background: radial-gradient(ellipse at center, rgba(240,185,11,0.08) 0%, transparent 70%);
+            background: radial-gradient(ellipse at center, rgba(240, 185, 11, 0.08) 0%, transparent 70%);
             z-index: 0;
             pointer-events: none;
         }
@@ -514,7 +616,7 @@
             position: relative;
             z-index: 1;
             outline: none;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(240,185,11,0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(240, 185, 11, 0.15);
         }
 
         /* ════════════════════════════════
@@ -537,7 +639,8 @@
         }
 
         .playing-dot {
-            width: 8px; height: 8px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--red);
             box-shadow: 0 0 8px var(--red);
@@ -565,7 +668,7 @@
             display: none;
             align-items: center;
             gap: 8px;
-            background: rgba(255,255,255,0.04);
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border-dim);
             border-radius: 20px;
             padding: 5px 14px;
@@ -575,10 +678,13 @@
             overflow: hidden;
         }
 
-        .epg-pill.visible { display: flex; }
+        .epg-pill.visible {
+            display: flex;
+        }
 
         .epg-icon {
-            width: 16px; height: 16px;
+            width: 16px;
+            height: 16px;
             flex-shrink: 0;
         }
 
@@ -593,7 +699,7 @@
             font-size: 0.65rem;
             font-weight: 700;
             letter-spacing: 0.25em;
-            color: rgba(240,185,11,0.25);
+            color: rgba(240, 185, 11, 0.25);
             text-transform: uppercase;
             pointer-events: none;
             user-select: none;
@@ -603,356 +709,407 @@
            RESPONSIVE
         ════════════════════════════════ */
         @media (max-width: 900px) {
-            .wrapper { flex-direction: column; overflow-y: auto; height: auto; }
-            body { overflow: auto; }
-            .col-groups, .col-channels { width: 100%; height: 180px; flex-direction: row; flex-wrap: nowrap; }
-            .col-groups { flex-direction: column; }
-            .col-channels { flex-direction: column; }
-            .col-player { padding: 12px; min-height: 70vh; justify-content: flex-start; padding-top: 20px; }
-            .info-bar { flex-wrap: wrap; gap: 10px; }
+            .wrapper {
+                flex-direction: column;
+                overflow-y: auto;
+                height: auto;
+            }
+            body {
+                overflow: auto;
+            }
+            .col-groups,
+            .col-channels {
+                width: 100%;
+                height: 180px;
+                flex-direction: row;
+                flex-wrap: nowrap;
+            }
+            .col-groups {
+                flex-direction: column;
+            }
+            .col-channels {
+                flex-direction: column;
+            }
+            .col-player {
+                padding: 12px;
+                min-height: 70vh;
+                justify-content: flex-start;
+                padding-top: 20px;
+            }
+            .info-bar {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
         }
 
         @media (max-width: 600px) {
-            .info-bar { padding: 10px 14px; }
-            .info-clock { font-size: 1.5rem; }
-            .weather-temp { font-size: 1.2rem; }
+            .info-bar {
+                padding: 10px 14px;
+            }
+            .info-clock {
+                font-size: 1.5rem;
+            }
+            .weather-temp {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
 <body>
 
-<!-- ════ LOADING SCREEN ════ -->
-<div id="loadingOverlay">
-    <div class="load-spinner-wrap">
-        <div class="load-ring"></div>
-        <div class="load-ring"></div>
-        <div class="load-ring"></div>
-        <div class="load-dot"></div>
-    </div>
-    <div class="load-logo">KAMAL PRO</div>
-    <div class="load-sub">ULTRA IPTV PLAYER</div>
-    <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
-    <p id="loadingStatus">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان...</p>
-</div>
-
-<!-- ════ MAIN APP ════ -->
-<div class="wrapper" id="mainApp">
-
-    <!-- GROUPS COLUMN -->
-    <div class="col-groups">
-        <div class="header">
-            <span class="header-label">گرووپەکان</span>
-            <span class="header-count" id="groupCount">0</span>
+    <!-- ════ LOADING SCREEN ════ -->
+    <div id="loadingOverlay">
+        <div class="load-spinner-wrap">
+            <div class="load-ring"></div>
+            <div class="load-ring"></div>
+            <div class="load-ring"></div>
+            <div class="load-dot"></div>
         </div>
-        <div class="scrollable" id="gList"></div>
+        <div class="load-logo">KAMAL PRO</div>
+        <div class="load-sub">ULTRA IPTV PLAYER</div>
+        <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
+        <p id="loadingStatus">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان...</p>
     </div>
 
-    <!-- CHANNELS COLUMN -->
-    <div class="col-channels">
-        <div class="header">
-            <span class="header-label">کەناڵەکان</span>
-            <span class="header-count" id="chanCount">0</span>
-        </div>
-        <div class="search-wrap">
-            <input class="search-input" type="text" id="searchInput" placeholder="گەڕان لە کەناڵەکان...">
-        </div>
-        <div class="scrollable" id="cList"></div>
-    </div>
+    <!-- ════ MAIN APP ════ -->
+    <div class="wrapper" id="mainApp">
 
-    <!-- PLAYER COLUMN -->
-    <div class="col-player">
-
-        <!-- INFO BAR -->
-        <div class="info-bar">
-            <div class="info-time-section">
-                <div id="pClock" class="info-clock">00:00:00</div>
-                <div id="pDates" class="info-date">بار دەکات...</div>
+        <!-- GROUPS COLUMN -->
+        <div class="col-groups">
+            <div class="header">
+                <span class="header-label">گرووپەکان</span>
+                <span class="header-count" id="groupCount">0</span>
             </div>
+            <div class="scrollable" id="gList"></div>
+        </div>
 
-            <div class="info-divider"></div>
+        <!-- CHANNELS COLUMN -->
+        <div class="col-channels">
+            <div class="header">
+                <span class="header-label">کەناڵەکان</span>
+                <span class="header-count" id="chanCount">0</span>
+            </div>
+            <div class="search-wrap">
+                <input class="search-input" type="text" id="searchInput" placeholder="گەڕان لە کەناڵەکان..." />
+            </div>
+            <div class="scrollable" id="cList"></div>
+        </div>
 
-            <div id="pWeatherBox" class="info-weather-section">
-                <div class="weather-icon-wrap"><span id="pIcon">-</span></div>
-                <div class="weather-details">
-                    <span class="weather-city" id="pCity">هەولێر</span>
-                    <span class="weather-desc" id="pDesc">---</span>
-                    <span class="weather-gregorian" id="pGregorian">---</span>
+        <!-- PLAYER COLUMN -->
+        <div class="col-player">
+
+            <!-- INFO BAR -->
+            <div class="info-bar">
+                <div class="info-time-section">
+                    <div id="pClock" class="info-clock">00:00:00</div>
+                    <div id="pDates" class="info-date">بار دەکات...</div>
                 </div>
-                <span class="weather-temp" id="pTemp">--°</span>
-            </div>
-        </div>
 
-        <!-- VIDEO -->
-        <div class="player-wrap">
-            <div class="player-glow"></div>
-            <div class="player-border"></div>
-            <video id="player" controls autoplay></video>
-            <div class="brand-corner">KAMAL PRO ULTRA</div>
-        </div>
+                <div class="info-divider"></div>
 
-        <!-- NOW PLAYING + EPG -->
-        <div class="now-playing-bar">
-            <div class="channel-title-display">
-                <div class="playing-dot"></div>
-                <span class="playing-label">Live</span>
-                <div id="title">KAMAL PRO ULTRA</div>
+                <div id="pWeatherBox" class="info-weather-section">
+                    <div class="weather-icon-wrap"><span id="pIcon">-</span></div>
+                    <div class="weather-details">
+                        <span class="weather-city" id="pCity">هەولێر</span>
+                        <span class="weather-desc" id="pDesc">---</span>
+                        <span class="weather-gregorian" id="pGregorian">---</span>
+                    </div>
+                    <span class="weather-temp" id="pTemp">--°</span>
+                </div>
             </div>
-            <div id="epgDisplay" class="epg-pill">
-                <svg class="epg-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="1" y="2" width="14" height="12" rx="2" stroke="rgba(240,185,11,0.5)" stroke-width="1.2"/>
-                    <line x1="1" y1="6" x2="15" y2="6" stroke="rgba(240,185,11,0.5)" stroke-width="1.2"/>
-                    <line x1="4" y1="9.5" x2="8" y2="9.5" stroke="rgba(240,185,11,0.4)" stroke-width="1.2" stroke-linecap="round"/>
-                    <line x1="4" y1="11.5" x2="10" y2="11.5" stroke="rgba(240,185,11,0.25)" stroke-width="1.2" stroke-linecap="round"/>
-                </svg>
-                <span id="epgText">---</span>
-            </div>
-        </div>
 
+            <!-- VIDEO -->
+            <div class="player-wrap">
+                <div class="player-glow"></div>
+                <div class="player-border"></div>
+                <video id="player" controls autoplay></video>
+                <div class="brand-corner">KAMAL PRO ULTRA</div>
+            </div>
+
+            <!-- NOW PLAYING + EPG -->
+            <div class="now-playing-bar">
+                <div class="channel-title-display">
+                    <div class="playing-dot"></div>
+                    <span class="playing-label">Live</span>
+                    <div id="title">KAMAL PRO ULTRA</div>
+                </div>
+                <div id="epgDisplay" class="epg-pill">
+                    <svg class="epg-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="2" width="14" height="12" rx="2" stroke="rgba(240,185,11,0.5)" stroke-width="1.2" />
+                        <line x1="1" y1="6" x2="15" y2="6" stroke="rgba(240,185,11,0.5)" stroke-width="1.2" />
+                        <line x1="4" y1="9.5" x2="8" y2="9.5" stroke="rgba(240,185,11,0.4)" stroke-width="1.2" stroke-linecap="round" />
+                        <line x1="4" y1="11.5" x2="10" y2="11.5" stroke="rgba(240,185,11,0.25)" stroke-width="1.2" stroke-linecap="round" />
+                    </svg>
+                    <span id="epgText">---</span>
+                </div>
+            </div>
+
+        </div>
     </div>
-</div>
 
-<script>
-    const M3U_URL = 'https://xtream-ie.net/get.php?username=serverblbas&password=serverblbas&type=m3u_plus';
-    const EPG_URL = 'https://xtream-ie.net/xmltv.php?username=serverblbas&password=serverblbas'; // لێرەدا کۆتیشنەکە چاککراوەتەوە
+    <script>
+        // ─── UPDATED CREDENTIALS ──────────────────────────────────────────────
+        const M3U_URL =
+            'https://xtream-ie.net/get.php?username=2e3e9BjvfhUDA&password=GfMaWrFHrKAZ&type=m3u_plus';
+        const EPG_URL =
+            'https://xtream-ie.net/xmltv.php?username=2e3e9BjvfhUDA&password=GfMaWrFHrKAZ';
+        // ─────────────────────────────────────────────────────────────────────
 
-    let allData = [];
-    let currentGroupData = [];
-    let epgData = {};
-    const video = document.getElementById('player');
-    let hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-    let currentActiveUrl = "";
+        let allData = [];
+        let currentGroupData = [];
+        let epgData = {};
+        const video = document.getElementById('player');
+        let hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        let currentActiveUrl = "";
 
-    const kurdistanCities = [
-        { name: "هەولێر", lat: 36.1911, lon: 44.0092 },
-        { name: "سلێمانی", lat: 35.5612, lon: 45.4385 },
-        { name: "دهۆک", lat: 36.8601, lon: 42.9891 },
-        { name: "کەرکووک", lat: 35.4681, lon: 44.3922 },
-        { name: "هەڵەبجە", lat: 35.1778, lon: 45.9861 }
-    ];
+        const kurdistanCities = [
+            { name: "هەولێر", lat: 36.1911, lon: 44.0092 },
+            { name: "سلێمانی", lat: 35.5612, lon: 45.4385 },
+            { name: "دهۆک", lat: 36.8601, lon: 42.9891 },
+            { name: "کەرکووک", lat: 35.4681, lon: 44.3922 },
+            { name: "هەڵەبجە", lat: 35.1778, lon: 45.9861 }
+        ];
 
-    const weatherCodes = {
-        0: { text: 'Clear Sky', icon: 'SUN' },
-        1: { text: 'Mainly Clear', icon: 'SUN' },
-        2: { text: 'Partly Cloudy', icon: 'CLD' },
-        3: { text: 'Cloudy', icon: 'CLD' },
-        45: { text: 'Foggy', icon: 'FOG' },
-        48: { text: 'Foggy', icon: 'FOG' },
-        51: { text: 'Light Drizzle', icon: 'RN' },
-        53: { text: 'Moderate Drizzle', icon: 'RN' },
-        55: { text: 'Dense Drizzle', icon: 'RN' },
-        61: { text: 'Slight Rain', icon: 'RN' },
-        63: { text: 'Moderate Rain', icon: 'RN' },
-        65: { text: 'Heavy Rain', icon: 'RN' },
-        71: { text: 'Slight Snow', icon: 'SNW' },
-        73: { text: 'Moderate Snow', icon: 'SNW' },
-        75: { text: 'Heavy Snow', icon: 'SNW' },
-        80: { text: 'Light Showers', icon: 'RN' },
-        81: { text: 'Showers', icon: 'RN' },
-        82: { text: 'Heavy Showers', icon: 'RN' },
-        95: { text: 'Thunderstorm', icon: 'STM' }
-    };
+        const weatherCodes = {
+            0: { text: 'Clear Sky', icon: 'SUN' },
+            1: { text: 'Mainly Clear', icon: 'SUN' },
+            2: { text: 'Partly Cloudy', icon: 'CLD' },
+            3: { text: 'Cloudy', icon: 'CLD' },
+            45: { text: 'Foggy', icon: 'FOG' },
+            48: { text: 'Foggy', icon: 'FOG' },
+            51: { text: 'Light Drizzle', icon: 'RN' },
+            53: { text: 'Moderate Drizzle', icon: 'RN' },
+            55: { text: 'Dense Drizzle', icon: 'RN' },
+            61: { text: 'Slight Rain', icon: 'RN' },
+            63: { text: 'Moderate Rain', icon: 'RN' },
+            65: { text: 'Heavy Rain', icon: 'RN' },
+            71: { text: 'Slight Snow', icon: 'SNW' },
+            73: { text: 'Moderate Snow', icon: 'SNW' },
+            75: { text: 'Heavy Snow', icon: 'SNW' },
+            80: { text: 'Light Showers', icon: 'RN' },
+            81: { text: 'Showers', icon: 'RN' },
+            82: { text: 'Heavy Showers', icon: 'RN' },
+            95: { text: 'Thunderstorm', icon: 'STM' }
+        };
 
-    const weatherSVGs = {
-        'SUN': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0b90b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
-        'CLD': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aab" stroke-width="2" stroke-linecap="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>`,
-        'RN': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="13" x2="16" y2="15"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="12" y1="15" x2="12" y2="17"/></svg>`,
-        'SNW': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b0d8f5" stroke-width="2" stroke-linecap="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><polyline points="8 16 12 12 16 16"/><line x1="12" y1="12" x2="12" y2="20"/></svg>`,
-        'FOG': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M5 10h14M5 15h14M5 20h14"/></svg>`,
-        'STM': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0b90b" stroke-width="2" stroke-linecap="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/></svg>`
-    };
+        const weatherSVGs = {
+            'SUN': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0b90b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+            'CLD': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aab" stroke-width="2" stroke-linecap="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>`,
+            'RN': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="13" x2="16" y2="15"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="12" y1="15" x2="12" y2="17"/></svg>`,
+            'SNW': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b0d8f5" stroke-width="2" stroke-linecap="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><polyline points="8 16 12 12 16 16"/><line x1="12" y1="12" x2="12" y2="20"/></svg>`,
+            'FOG': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M5 10h14M5 15h14M5 20h14"/></svg>`,
+            'STM': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0b90b" stroke-width="2" stroke-linecap="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/></svg>`
+        };
 
-    let cachedWeather = {};
-    let currentCityIndex = 0;
+        let cachedWeather = {};
+        let currentCityIndex = 0;
 
-    window.onload = function () {
-        startLoading();
-        fetchLiveWeather().then(() => showMiniWeather(0));
-        setInterval(fetchLiveWeather, 300000);
-        updateUiDateTime();
-        setInterval(updateUiDateTime, 1000);
-        setInterval(cycleWeather, 5000);
+        window.onload = function() {
+            startLoading();
+            fetchLiveWeather().then(() => showMiniWeather(0));
+            setInterval(fetchLiveWeather, 300000);
+            updateUiDateTime();
+            setInterval(updateUiDateTime, 1000);
+            setInterval(cycleWeather, 5000);
 
-        document.getElementById('searchInput').addEventListener('input', function () {
-            const q = this.value.trim().toLowerCase();
-            const filtered = currentGroupData.filter(x => x.name.toLowerCase().includes(q));
-            renderC(filtered);
-        });
-    };
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const q = this.value.trim().toLowerCase();
+                const filtered = currentGroupData.filter(x => x.name.toLowerCase().includes(q));
+                renderC(filtered);
+            });
+        };
 
-    async function fetchLiveWeather() {
-        for (let i = 0; i < kurdistanCities.length; i++) {
-            const city = kurdistanCities[i];
+        async function fetchLiveWeather() {
+            for (let i = 0; i < kurdistanCities.length; i++) {
+                const city = kurdistanCities[i];
+                try {
+                    const res = await fetch(
+                        `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia/Baghdad`
+                        );
+                    if (res.ok) {
+                        const data = await res.json();
+                        const info = weatherCodes[data.current.weather_code] || { text: 'Clear Sky', icon: 'SUN' };
+                        cachedWeather[i] = {
+                            name: city.name,
+                            temp: `${Math.round(data.current.temperature_2m)}`,
+                            desc: info.text,
+                            iconKey: info.icon
+                        };
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function showMiniWeather(index) {
+            const data = cachedWeather[index];
+            if (!data) return;
+            document.getElementById('pCity').innerText = data.name;
+            document.getElementById('pTemp').innerText = data.temp + 'deg';
+            document.getElementById('pDesc').innerText = data.desc;
+            document.getElementById('pIcon').innerHTML = weatherSVGs[data.iconKey] || '-';
+            document.getElementById('pTemp').innerText = data.temp + '\u00b0C';
+        }
+
+        function cycleWeather() {
+            const el = document.getElementById('pWeatherBox');
+            if (!el) return;
+            el.style.opacity = 0;
+            setTimeout(() => {
+                currentCityIndex = (currentCityIndex + 1) % kurdistanCities.length;
+                showMiniWeather(currentCityIndex);
+                el.style.opacity = 1;
+            }, 400);
+        }
+
+        function getKurdishDate(date) {
+            const kurdishMonths = ["خاکەلێوە", "بانەمەڕ", "جۆزەردان", "پوشپەڕ", "گەلاوێژ", "خەرمانان", "ڕەزبەر", "گەڵاڕێزان",
+                "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە"
+            ];
             try {
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia/Baghdad`);
-                if (res.ok) {
-                    const data = await res.json();
-                    const info = weatherCodes[data.current.weather_code] || { text: 'Clear Sky', icon: 'SUN' };
-                    cachedWeather[i] = { name: city.name, temp: `${Math.round(data.current.temperature_2m)}`, desc: info.text, iconKey: info.icon };
+                const PersianFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { day: 'numeric', month: 'numeric',
+                    year: 'numeric' });
+                const parts = PersianFormatter.format(date).split('/');
+                let kYear = parseInt(parts[2]) + 1321;
+                return `${parseInt(parts[1])}ی ${kurdishMonths[parseInt(parts[0]) - 1]}ی ${kYear}`;
+            } catch (e) { return ""; }
+        }
+
+        function getGregorianDateStr(date) {
+            const months = ["کانوونی دووەم", "شوبات", "ئازار", "نیسان", "ئایار", "حوزەیران", "تەممووز", "ئاب", "ئەیلوول",
+                "تشرینی یەکەم", "تشرینی دووەم", "کانوونی یەکەم"
+            ];
+            return `${date.getDate()}ی ${months[date.getMonth()]}ی ${date.getFullYear()}`;
+        }
+
+        function updateUiDateTime() {
+            const now = new Date();
+            document.getElementById('pClock').innerText =
+                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            let hijriStr = "";
+            try {
+                hijriStr = new Intl.DateTimeFormat('ar-SA', { calendar: 'islamic-umalqura', day: 'numeric',
+                    month: 'long', year: 'numeric' }).format(now).replace('\u0647\u0640', '\u06a9\u06c6\u0686\u06cc');
+            } catch (e) { hijriStr = ""; }
+            document.getElementById('pDates').innerText = `${hijriStr}  |  ${getKurdishDate(now)}`;
+            document.getElementById('pGregorian').innerText = getGregorianDateStr(now);
+        }
+
+        async function startLoading() {
+            try {
+                const r = await fetch(M3U_URL);
+                const d = await r.text();
+                parseM3U(d);
+                fetchEPG();
+                document.getElementById('loadingOverlay').style.display = 'none';
+            } catch (e) {
+                document.getElementById('loadingStatus').innerHTML =
+                    "<span style='color:#e53935;'>خەتا لە هێنانی بەستەرەکە! دڵنیابەوە لە ئینتەرنێتەکەت.</span>";
+            }
+        }
+
+        async function fetchEPG() {
+            try {
+                const res = await fetch(EPG_URL);
+                const text = await res.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(text, "text/xml");
+                const programmes = xmlDoc.getElementsByTagName("programme");
+                for (let i = 0; i < programmes.length; i++) {
+                    const prog = programmes[i];
+                    const channelId = prog.getAttribute("channel");
+                    const title = prog.getElementsByTagName("title")[0]?.textContent || "";
+                    const start = prog.getAttribute("start");
+                    if (!epgData[channelId]) epgData[channelId] = [];
+                    epgData[channelId].push({ title, start });
                 }
-            } catch (e) { }
+            } catch (e) {}
         }
-    }
 
-    function showMiniWeather(index) {
-        const data = cachedWeather[index];
-        if (!data) return;
-        document.getElementById('pCity').innerText = data.name;
-        document.getElementById('pTemp').innerText = data.temp + 'deg';
-        document.getElementById('pDesc').innerText = data.desc;
-        document.getElementById('pIcon').innerHTML = weatherSVGs[data.iconKey] || '-';
-        document.getElementById('pTemp').innerText = data.temp + '\u00b0C';
-    }
-
-    function cycleWeather() {
-        const el = document.getElementById('pWeatherBox');
-        if (!el) return;
-        el.style.opacity = 0;
-        setTimeout(() => {
-            currentCityIndex = (currentCityIndex + 1) % kurdistanCities.length;
-            showMiniWeather(currentCityIndex);
-            el.style.opacity = 1;
-        }, 400);
-    }
-
-    function getKurdishDate(date) {
-        const kurdishMonths = ["خاکەلێوە", "بانەمەڕ", "جۆزەردان", "پوشپەڕ", "گەلاوێژ", "خەرمانان", "ڕەزبەر", "گەڵاڕێزان", "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە"];
-        try {
-            const PersianFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { day: 'numeric', month: 'numeric', year: 'numeric' });
-            const parts = PersianFormatter.format(date).split('/');
-            let kYear = parseInt(parts[2]) + 1321;
-            return `${parseInt(parts[1])}ی ${kurdishMonths[parseInt(parts[0]) - 1]}ی ${kYear}`;
-        } catch (e) { return ""; }
-    }
-
-    function getGregorianDateStr(date) {
-        const months = ["کانوونی دووەم", "شوبات", "ئازار", "نیسان", "ئایار", "حوزەیران", "تەممووز", "ئاب", "ئەیلوول", "تشرینی یەکەم", "تشرینی دووەم", "کانوونی یەکەم"];
-        return `${date.getDate()}ی ${months[date.getMonth()]}ی ${date.getFullYear()}`;
-    }
-
-    function updateUiDateTime() {
-        const now = new Date();
-        document.getElementById('pClock').innerText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-        let hijriStr = "";
-        try {
-            hijriStr = new Intl.DateTimeFormat('ar-SA', { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' }).format(now).replace('\u0647\u0640', '\u06a9\u06c6\u0686\u06cc');
-        } catch (e) { hijriStr = ""; }
-        document.getElementById('pDates').innerText = `${hijriStr}  |  ${getKurdishDate(now)}`;
-        document.getElementById('pGregorian').innerText = getGregorianDateStr(now);
-    }
-
-    async function startLoading() {
-        try {
-            const r = await fetch(M3U_URL);
-            const d = await r.text();
-            parseM3U(d);
-            fetchEPG();
-            document.getElementById('loadingOverlay').style.display = 'none';
-        } catch (e) {
-            document.getElementById('loadingStatus').innerHTML = "<span style='color:#e53935;'>خەتا لە هێنانی بەستەرەکە! دڵنیابەوە لە ئینتەرنێتەکەت.</span>";
+        function parseM3U(data) {
+            const lines = data.split('\n');
+            let obj = {};
+            allData = [];
+            lines.forEach(l => {
+                if (l.startsWith('#EXTINF:')) {
+                    obj.name = l.split(',')[1]?.trim() || "Channel";
+                    const g = l.match(/group-title="([^"]+)"/i);
+                    const im = l.match(/tvg-logo="([^"]+)"/i);
+                    const cid = l.match(/tvg-id="([^"]+)"/i);
+                    obj.group = g ? g[1] : "General";
+                    obj.logo = im ? im[1] : "";
+                    obj.id = cid ? cid[1] : "";
+                } else if (l.startsWith('http')) {
+                    obj.url = l.trim();
+                    allData.push(obj);
+                    obj = {};
+                }
+            });
+            renderG();
+            const firstBtn = document.querySelector('.group-btn');
+            if (allData.length > 0) filter("هەمووی", firstBtn);
         }
-    }
 
-    async function fetchEPG() {
-        try {
-            const res = await fetch(EPG_URL);
-            const text = await res.text();
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(text, "text/xml");
-            const programmes = xmlDoc.getElementsByTagName("programme");
-            for (let i = 0; i < programmes.length; i++) {
-                const prog = programmes[i];
-                const channelId = prog.getAttribute("channel");
-                const title = prog.getElementsByTagName("title")[0]?.textContent || "";
-                const start = prog.getAttribute("start");
-                if (!epgData[channelId]) epgData[channelId] = [];
-                epgData[channelId].push({ title, start });
+        function renderG() {
+            const gs = ["هەمووی", ...new Set(allData.map(x => x.group))];
+            document.getElementById('groupCount').innerText = gs.length - 1;
+            document.getElementById('gList').innerHTML = gs.map(g => {
+                return `<button class="group-btn" onclick="filter('${g.replace(/'/g,"\\'")}', this)">
+                            <span class="group-dot"></span>
+                            <span>${g}</span>
+                        </button>`;
+            }).join('');
+        }
+
+        function renderC(list) {
+            document.getElementById('chanCount').innerText = list.length;
+            document.getElementById('cList').innerHTML = list.map((x, index) => {
+                const img = x.logo ? x.logo :
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=1a2030&color=f0b90b&bold=true&size=80`;
+                const isActive = (x.url === currentActiveUrl) ? 'active-channel' : '';
+                return `<div class="chan-card ${isActive}" onclick="play('${x.url.replace(/'/g,"\\'")}', '${x.name.replace(/'/g,"\\'")}', '${x.id}', this)">
+                            <span class="chan-num">${index + 1}</span>
+                            <img src="${img}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=1a2030&color=f0b90b&bold=true&size=80'">
+                            <span class="chan-name">${x.name}</span>
+                            <span class="live-badge">LIVE</span>
+                        </div>`;
+            }).join('');
+        }
+
+        function play(u, n, id, element) {
+            currentActiveUrl = u;
+            document.getElementById('title').innerText = n;
+            document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active-channel'));
+            if (element) element.classList.add('active-channel');
+
+            const epgDisplay = document.getElementById('epgDisplay');
+            const epgText = document.getElementById('epgText');
+            if (id && epgData[id] && epgData[id].length > 0) {
+                epgText.innerText = `ئێستا: ${epgData[id][0].title}`;
+                epgDisplay.classList.add('visible');
+            } else {
+                epgDisplay.classList.remove('visible');
             }
-        } catch (e) { }
-    }
 
-    function parseM3U(data) {
-        const lines = data.split('\n');
-        let obj = {};
-        allData = [];
-        lines.forEach(l => {
-            if (l.startsWith('#EXTINF:')) {
-                obj.name = l.split(',')[1]?.trim() || "Channel";
-                const g = l.match(/group-title="([^"]+)"/i);
-                const im = l.match(/tvg-logo="([^"]+)"/i);
-                const cid = l.match(/tvg-id="([^"]+)"/i);
-                obj.group = g ? g[1] : "General";
-                obj.logo = im ? im[1] : "";
-                obj.id = cid ? cid[1] : "";
-            } else if (l.startsWith('http')) {
-                obj.url = l.trim();
-                allData.push(obj);
-                obj = {};
+            if (Hls.isSupported()) {
+                hls.destroy();
+                hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+                hls.loadSource(u);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = u;
+                video.play().catch(() => {});
             }
-        });
-        renderG();
-        const firstBtn = document.querySelector('.group-btn');
-        if (allData.length > 0) filter("هەمووی", firstBtn);
-    }
-
-    function renderG() {
-        const gs = ["هەمووی", ...new Set(allData.map(x => x.group))];
-        document.getElementById('groupCount').innerText = gs.length - 1;
-        document.getElementById('gList').innerHTML = gs.map(g => {
-            return `<button class="group-btn" onclick="filter('${g.replace(/'/g,"\\'")}', this)">
-                        <span class="group-dot"></span>
-                        <span>${g}</span>
-                    </button>`;
-        }).join('');
-    }
-
-    function renderC(list) {
-        document.getElementById('chanCount').innerText = list.length;
-        document.getElementById('cList').innerHTML = list.map((x, index) => {
-            const img = x.logo ? x.logo : `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=1a2030&color=f0b90b&bold=true&size=80`;
-            const isActive = (x.url === currentActiveUrl) ? 'active-channel' : '';
-            return `<div class="chan-card ${isActive}" onclick="play('${x.url.replace(/'/g,"\\'")}', '${x.name.replace(/'/g,"\\'")}', '${x.id}', this)">
-                        <span class="chan-num">${index + 1}</span>
-                        <img src="${img}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=1a2030&color=f0b90b&bold=true&size=80'">
-                        <span class="chan-name">${x.name}</span>
-                        <span class="live-badge">LIVE</span>
-                    </div>`;
-        }).join('');
-    }
-
-    function play(u, n, id, element) {
-        currentActiveUrl = u;
-        document.getElementById('title').innerText = n;
-        document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active-channel'));
-        if (element) element.classList.add('active-channel');
-
-        const epgDisplay = document.getElementById('epgDisplay');
-        const epgText = document.getElementById('epgText');
-        if (id && epgData[id] && epgData[id].length > 0) {
-            epgText.innerText = `ئێستا: ${epgData[id][0].title}`;
-            epgDisplay.classList.add('visible');
-        } else {
-            epgDisplay.classList.remove('visible');
         }
 
-        if (Hls.isSupported()) {
-            hls.destroy();
-            hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-            hls.loadSource(u);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = u;
-            video.play().catch(() => {});
+        function filter(g, btnElement) {
+            document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active-group'));
+            if (btnElement) btnElement.classList.add('active-group');
+            document.getElementById('searchInput').value = '';
+            currentGroupData = (g === "هەمووی") ? allData : allData.filter(x => x.group === g);
+            renderC(currentGroupData);
         }
-    }
+    </script>
 
-    function filter(g, btnElement) {
-        document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active-group'));
-        if (btnElement) btnElement.classList.add('active-group');
-        document.getElementById('searchInput').value = '';
-        currentGroupData = (g === "هەمووی") ? allData : allData.filter(x => x.group === g);
-        renderC(currentGroupData);
-    }
-</script>
 </body>
 </html>
