@@ -1,1027 +1,515 @@
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KAMAL PRO ULTRA</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest">
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KAMAL PRO MOBILE</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold: #f0b90b;
             --gold-dim: #c9940a;
-            --gold-glow: rgba(240, 185, 11, 0.18);
-            --gold-ultra: rgba(240, 185, 11, 0.06);
             --bg: #060a0e;
             --surface: #0b1018;
-            --surface2: #0f1520;
-            --surface3: #141c28;
+            --surface2: #121820;
+            --surface3: #1a2330;
             --border: rgba(240, 185, 11, 0.12);
-            --border-dim: rgba(255, 255, 255, 0.06);
             --text: #e8eaf0;
-            --text-dim: rgba(232, 234, 240, 0.5);
-            --text-muted: rgba(232, 234, 240, 0.28);
-            --red: #e53935;
-            --sidebar-w: 220px;
-            --chan-w: 290px;
+            --text-dim: rgba(232, 234, 240, 0.6);
+            --text-muted: rgba(232, 234, 240, 0.35);
+            --red: #ff3b30;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        html, body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Noto Naskh Arabic', 'Segoe UI', sans-serif;
-            height: 100vh;
+            font-family: 'Noto Naskh Arabic', sans-serif;
+            height: 100%;
             overflow: hidden;
-            background-image:
-                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(240, 185, 11, 0.07) 0%, transparent 60%),
-                radial-gradient(ellipse 40% 30% at 80% 90%, rgba(240, 185, 11, 0.04) 0%, transparent 50%);
+            touch-action: manipulation;
         }
 
-        /* ════════════════════════════════
-           LOADING SCREEN
-        ════════════════════════════════ */
-        #loadingOverlay {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            background-image: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(240, 185, 11, 0.06) 0%, transparent 70%);
+        /* ═══ LOADING ═══ */
+        #loader {
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--bg);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 16px;
         }
-
         .load-logo {
             font-family: 'Rajdhani', sans-serif;
-            font-size: 3.2rem;
-            font-weight: 700;
-            letter-spacing: 0.3em;
-            background: linear-gradient(135deg, #f0b90b 0%, #ffe566 40%, #c9940a 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-            text-transform: uppercase;
+            font-size: 2rem; font-weight: 700;
+            letter-spacing: 0.2em;
+            background: linear-gradient(135deg, var(--gold), #ffe566);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-
-        .load-sub {
-            font-size: 0.75rem;
-            letter-spacing: 0.35em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 48px;
-            font-family: 'Rajdhani', sans-serif;
+        .load-bar {
+            width: 140px; height: 3px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px; overflow: hidden;
         }
-
-        .load-spinner-wrap {
-            position: relative;
-            width: 70px;
-            height: 70px;
-            margin-bottom: 32px;
-        }
-
-        .load-ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            animation: spin 1.4s linear infinite;
-        }
-        .load-ring:nth-child(1) {
-            border-top-color: var(--gold);
-            animation-duration: 1.2s;
-        }
-        .load-ring:nth-child(2) {
-            border-right-color: rgba(240, 185, 11, 0.4);
-            animation-duration: 1.8s;
-            inset: 8px;
-            animation-direction: reverse;
-        }
-        .load-ring:nth-child(3) {
-            border-bottom-color: rgba(240, 185, 11, 0.2);
-            animation-duration: 2.4s;
-            inset: 16px;
-        }
-
-        .load-dot {
-            position: absolute;
-            inset: 28px;
+        .load-bar::after {
+            content: ''; display: block;
+            width: 40%; height: 100%;
             background: var(--gold);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--gold);
-            animation: pulse-dot 1.2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.6;
-                transform: scale(0.8);
-            }
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        #loadingStatus {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            letter-spacing: 0.1em;
-            text-align: center;
-            max-width: 300px;
-            line-height: 1.6;
-        }
-
-        .load-bar-wrap {
-            width: 240px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .load-bar-fill {
-            height: 100%;
-            width: 40%;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
-            border-radius: 2px;
-            animation: load-sweep 1.8s ease-in-out infinite;
-        }
-        @keyframes load-sweep {
-            0% {
-                transform: translateX(-200%);
-            }
-            100% {
-                transform: translateX(500%);
-            }
-        }
-
-        /* ════════════════════════════════
-           LAYOUT
-        ════════════════════════════════ */
-        .wrapper {
-            display: flex;
-            height: 100vh;
-        }
-
-        /* ════════════════════════════════
-           LEFT SIDEBAR - GROUPS
-        ════════════════════════════════ */
-        .col-groups {
-            width: var(--sidebar-w);
-            background: var(--surface);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .col-groups::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 1px;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent, var(--gold), transparent);
-            opacity: 0.3;
-        }
-
-        .col-channels {
-            width: var(--chan-w);
-            background: var(--surface);
-            border-left: 1px solid var(--border-dim);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        /* ════════════════════════════════
-           HEADERS
-        ════════════════════════════════ */
-        .header {
-            padding: 0 16px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            background: rgba(240, 185, 11, 0.03);
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .header-label {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            color: var(--gold);
-        }
-
-        .header-count {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.72rem;
-            background: var(--gold-ultra);
-            border: 1px solid var(--border);
-            color: var(--gold-dim);
-            padding: 2px 8px;
-            border-radius: 20px;
-            letter-spacing: 0.05em;
-        }
-
-        /* ════════════════════════════════
-           SEARCH BAR
-        ════════════════════════════════ */
-        .search-wrap {
-            padding: 10px 12px 6px;
-            flex-shrink: 0;
-        }
-
-        .search-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-dim);
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: var(--text);
-            font-size: 0.82rem;
-            font-family: 'Noto Naskh Arabic', sans-serif;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            direction: rtl;
-        }
-
-        .search-input:focus {
-            border-color: rgba(240, 185, 11, 0.35);
-            box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.07);
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        /* ════════════════════════════════
-           SCROLLABLE
-        ════════════════════════════════ */
-        .scrollable {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px;
-        }
-
-        .scrollable::-webkit-scrollbar {
-            width: 4px;
-        }
-        .scrollable::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .scrollable::-webkit-scrollbar-thumb {
-            background: var(--gold-glow);
-            border-radius: 4px;
-        }
-        .scrollable::-webkit-scrollbar-thumb:hover {
-            background: rgba(240, 185, 11, 0.3);
-        }
-
-        /* ════════════════════════════════
-           GROUP BUTTONS
-        ════════════════════════════════ */
-        .group-btn {
-            width: 100%;
-            padding: 10px 12px;
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-dim);
-            cursor: pointer;
-            text-align: right;
-            border-radius: 8px;
-            margin-bottom: 3px;
-            transition: all 0.18s ease;
-            font-size: 0.82rem;
-            font-family: 'Noto Naskh Arabic', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .group-btn::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 3px;
-            height: 100%;
-            background: var(--gold);
-            border-radius: 0 3px 3px 0;
-            transform: scaleY(0);
-            transition: transform 0.18s ease;
-        }
-
-        .group-btn:hover {
-            background: rgba(240, 185, 11, 0.07);
-            color: var(--text);
-            border-color: var(--border);
-        }
-
-        .group-btn.active-group {
-            background: linear-gradient(90deg, rgba(240, 185, 11, 0.18), rgba(240, 185, 11, 0.07)) !important;
-            color: var(--gold) !important;
-            font-weight: 600;
-            border-color: rgba(240, 185, 11, 0.25) !important;
-            box-shadow: 0 2px 16px rgba(240, 185, 11, 0.08);
-        }
-
-        .group-btn.active-group::before {
-            transform: scaleY(1);
-        }
-
-        .group-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--text-muted);
-            flex-shrink: 0;
-            transition: background 0.18s;
-        }
-
-        .group-btn.active-group .group-dot {
-            background: var(--gold);
-            box-shadow: 0 0 6px var(--gold);
-        }
-
-        /* ════════════════════════════════
-           CHANNEL CARDS
-        ════════════════════════════════ */
-        .chan-card {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 10px;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-bottom: 4px;
-            transition: all 0.18s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .chan-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--border-dim);
-        }
-
-        .chan-card img {
-            width: 38px;
-            height: 38px;
-            object-fit: contain;
-            background: white;
-            border-radius: 6px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        .chan-card.active-channel {
-            background: linear-gradient(90deg, rgba(240, 185, 11, 0.14), rgba(240, 185, 11, 0.05)) !important;
-            border-color: rgba(240, 185, 11, 0.3) !important;
-            box-shadow: 0 0 20px rgba(240, 185, 11, 0.08), inset 3px 0 0 var(--gold);
-        }
-
-        .chan-card.active-channel .chan-name {
-            color: var(--gold);
-            font-weight: 600;
-        }
-
-        .chan-num {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            min-width: 22px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .chan-card.active-channel .chan-num {
-            color: var(--gold-dim);
-        }
-
-        .chan-name {
-            font-size: 0.82rem;
-            color: var(--text-dim);
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            line-height: 1.3;
-        }
-
-        .live-badge {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.55rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            background: var(--red);
-            color: white;
-            padding: 2px 5px;
             border-radius: 3px;
-            flex-shrink: 0;
-            display: none;
+            animation: slide 1.2s ease-in-out infinite;
+        }
+        @keyframes slide {
+            0% { transform: translateX(-150%); }
+            100% { transform: translateX(400%); }
         }
 
-        .chan-card.active-channel .live-badge {
-            display: block;
-            animation: blink-live 1.5s ease-in-out infinite;
-        }
-        @keyframes blink-live {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        /* ════════════════════════════════
-           PLAYER AREA
-        ════════════════════════════════ */
-        .col-player {
-            flex: 1;
-            background: var(--bg);
+        /* ═══ APP SHELL ═══ */
+        #app {
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
-            padding: 16px 20px 16px;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            gap: 12px;
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
         }
 
-        /* ════════════════════════════════
-           INFO BAR
-        ════════════════════════════════ */
-        .info-bar {
+        /* ═══ TOP BAR ═══ */
+        .top-bar {
+            height: 52px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            width: 100%;
-            max-width: 860px;
-            background: rgba(15, 21, 32, 0.85);
+            padding: 0 16px;
+            background: rgba(11, 16, 24, 0.95);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            padding: 10px 20px;
-            border-radius: 14px;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(240, 185, 11, 0.04);
+            border-bottom: 1px solid var(--border);
             flex-shrink: 0;
+            z-index: 100;
         }
-
-        .info-time-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 2px;
-        }
-
-        .info-clock {
+        .top-bar .logo {
             font-family: 'Rajdhani', sans-serif;
-            font-size: 2rem;
-            font-weight: 300;
-            color: #fff;
-            letter-spacing: 0.06em;
-            line-height: 1;
+            font-size: 1.1rem; font-weight: 700;
+            color: var(--gold); letter-spacing: 0.1em;
+        }
+        .top-bar .clock {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem; font-weight: 600;
+            color: #fff; direction: ltr;
         }
 
-        .info-date {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            letter-spacing: 0.03em;
-            line-height: 1.4;
-        }
-
-        .info-divider {
-            width: 1px;
-            height: 36px;
-            background: linear-gradient(to bottom, transparent, var(--border), transparent);
-        }
-
-        .info-weather-section {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 8px 18px;
-            background: rgba(240, 185, 11, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            cursor: default;
-            transition: opacity 0.4s ease-in-out;
-        }
-
-        .weather-icon-wrap {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(240, 185, 11, 0.1);
-            border-radius: 50%;
-            font-size: 1.1rem;
+        /* ═══ PLAYER AREA ═══ */
+        .player-section {
             flex-shrink: 0;
-        }
-
-        .weather-details {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 1px;
-        }
-        .weather-city {
-            font-weight: 600;
-            color: #fff;
-            font-size: 0.82rem;
-        }
-        .weather-desc {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-        }
-        .weather-gregorian {
-            color: var(--gold-dim);
-            font-size: 0.68rem;
-        }
-
-        .weather-temp {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--gold);
-            line-height: 1;
-        }
-
-        /* ════════════════════════════════
-           VIDEO PLAYER CONTAINER
-        ════════════════════════════════ */
-        .player-wrap {
-            width: 100%;
-            max-width: 860px;
             position: relative;
-            flex-shrink: 0;
+            background: #000;
         }
-
-        .player-border {
-            position: absolute;
-            inset: -1px;
-            border-radius: 15px;
-            background: linear-gradient(135deg, rgba(240, 185, 11, 0.4), transparent 40%, transparent 60%, rgba(240, 185, 11, 0.2));
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .player-glow {
-            position: absolute;
-            inset: -20px;
-            border-radius: 20px;
-            background: radial-gradient(ellipse at center, rgba(240, 185, 11, 0.08) 0%, transparent 70%);
-            z-index: 0;
-            pointer-events: none;
-        }
-
         video {
             width: 100%;
             aspect-ratio: 16/9;
-            border-radius: 14px;
             display: block;
             background: #000;
-            position: relative;
-            z-index: 1;
-            outline: none;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(240, 185, 11, 0.15);
         }
-
-        /* ════════════════════════════════
-           CHANNEL TITLE + EPG
-        ════════════════════════════════ */
-        .now-playing-bar {
-            width: 100%;
-            max-width: 860px;
+        .player-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: space-between;
-            gap: 12px;
-            flex-shrink: 0;
+            padding: 12px;
         }
-
-        .channel-title-display {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .playing-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+        .live-pill {
+            align-self: flex-start;
             background: var(--red);
-            box-shadow: 0 0 8px var(--red);
-            animation: blink-live 1.5s ease-in-out infinite;
-            flex-shrink: 0;
-        }
-
-        .playing-label {
+            color: #fff;
             font-family: 'Rajdhani', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 0.2em;
-            color: var(--red);
-            text-transform: uppercase;
+            font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 0.15em;
+            padding: 3px 10px;
+            border-radius: 4px;
+            display: flex; align-items: center; gap: 6px;
+            animation: blink 1.5s infinite;
         }
-
-        #title {
-            font-size: 1rem;
+        .live-pill::before {
+            content: ''; width: 6px; height: 6px;
+            background: #fff; border-radius: 50%;
+        }
+        @keyframes blink {
+            0%,100%{opacity:1} 50%{opacity:0.6}
+        }
+        .channel-name-overlay {
+            align-self: flex-end;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--gold);
-            letter-spacing: 0.03em;
+            border: 1px solid rgba(240,185,11,0.2);
         }
 
-        .epg-pill {
+        /* ═══ SWIPE HINT ═══ */
+        .swipe-hint {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .swipe-hint span {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ═══ BOTTOM SHEET (CHANNELS) ═══ */
+        .sheet-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+        .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        .sheet {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 75vh;
+            background: linear-gradient(180deg, #0f1520 0%, #060a0e 100%);
+            border-radius: 20px 20px 0 0;
+            border-top: 1px solid var(--border);
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            z-index: 201;
+            display: flex; flex-direction: column;
+            padding-bottom: var(--safe-bottom);
+        }
+        .sheet.open { transform: translateY(0); }
+
+        .sheet-handle {
+            width: 100%; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .sheet-handle::after {
+            content: ''; width: 40px; height: 4px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 4px;
+        }
+
+        /* ═══ GROUP CHIPS ═══ */
+        .chips-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 0 16px 12px;
+            flex-shrink: 0;
+            scrollbar-width: none;
+        }
+        .chips-scroll::-webkit-scrollbar { display: none; }
+
+        .chip {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            font-family: 'Noto Naskh Arabic', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .chip.active {
+            background: rgba(240,185,11,0.15);
+            border-color: rgba(240,185,11,0.4);
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        /* ═══ SEARCH ═══ */
+        .search-box {
+            padding: 0 16px 12px;
+            flex-shrink: 0;
+        }
+        .search-box input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-family: 'Noto Naskh Arabic', sans-serif;
+            outline: none;
+        }
+        .search-box input::placeholder { color: var(--text-muted); }
+
+        /* ═══ CHANNEL GRID ═══ */
+        .channel-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 16px;
+        }
+        .channel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        @media (min-width: 400px) {
+            .channel-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .channel-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 6px;
+            background: var(--surface2);
+            border: 1px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+        .channel-item:active {
+            transform: scale(0.96);
+            background: var(--surface3);
+        }
+        .channel-item.active {
+            border-color: var(--gold);
+            background: rgba(240,185,11,0.08);
+        }
+        .channel-item img {
+            width: 48px; height: 48px;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .channel-item span {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-align: center;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .channel-item.active span { color: var(--gold); font-weight: 600; }
+
+        .live-dot {
+            position: absolute;
+            top: 6px; left: 6px;
+            width: 7px; height: 7px;
+            background: var(--red);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--red);
+            animation: blink 1.5s infinite;
+            display: none;
+        }
+        .channel-item.active .live-dot { display: block; }
+
+        /* ═══ FLOATING BUTTON ═══ */
+        .fab {
+            position: fixed;
+            bottom: calc(20px + var(--safe-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--gold), #d4a009);
+            color: #000;
+            border: none;
+            border-radius: 28px;
+            padding: 12px 28px;
+            font-family: 'Noto Naskh Arabic', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(240,185,11,0.3);
+            z-index: 150;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .fab:active {
+            transform: translateX(-50%) scale(0.95);
+            box-shadow: 0 2px 10px rgba(240,185,11,0.2);
+        }
+        .fab svg { width: 18px; height: 18px; }
+
+        /* ═══ EPG BAR ═══ */
+        .epg-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 16px;
+            flex-shrink: 0;
             display: none;
             align-items: center;
             gap: 8px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-dim);
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: 0.78rem;
+        }
+        .epg-bar.visible { display: flex; }
+        .epg-bar svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .epg-bar span {
+            font-size: 0.75rem;
             color: var(--text-dim);
-            max-width: 340px;
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .epg-pill.visible {
-            display: flex;
-        }
-
-        .epg-icon {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
-
-        /* ════════════════════════════════
-           BRAND WATERMARK
-        ════════════════════════════════ */
-        .brand-corner {
-            position: absolute;
-            bottom: 14px;
-            left: 14px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.25em;
-            color: rgba(240, 185, 11, 0.25);
-            text-transform: uppercase;
+        /* ═══ TOAST ═══ */
+        .toast {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--surface3);
+            border: 1px solid var(--border);
+            color: var(--gold);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            opacity: 0;
             pointer-events: none;
-            user-select: none;
+            transition: all 0.3s;
+            z-index: 300;
+            white-space: nowrap;
         }
-
-        /* ════════════════════════════════
-           RESPONSIVE
-        ════════════════════════════════ */
-        @media (max-width: 900px) {
-            .wrapper {
-                flex-direction: column;
-                overflow-y: auto;
-                height: auto;
-            }
-            body {
-                overflow: auto;
-            }
-            .col-groups,
-            .col-channels {
-                width: 100%;
-                height: 180px;
-                flex-direction: row;
-                flex-wrap: nowrap;
-            }
-            .col-groups {
-                flex-direction: column;
-            }
-            .col-channels {
-                flex-direction: column;
-            }
-            .col-player {
-                padding: 12px;
-                min-height: 70vh;
-                justify-content: flex-start;
-                padding-top: 20px;
-            }
-            .info-bar {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .info-bar {
-                padding: 10px 14px;
-            }
-            .info-clock {
-                font-size: 1.5rem;
-            }
-            .weather-temp {
-                font-size: 1.2rem;
-            }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
     </style>
 </head>
 <body>
 
-    <!-- ════ LOADING SCREEN ════ -->
-    <div id="loadingOverlay">
-        <div class="load-spinner-wrap">
-            <div class="load-ring"></div>
-            <div class="load-ring"></div>
-            <div class="load-ring"></div>
-            <div class="load-dot"></div>
-        </div>
+    <div id="loader">
         <div class="load-logo">KAMAL PRO</div>
-        <div class="load-sub">ULTRA IPTV PLAYER</div>
-        <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
-        <p id="loadingStatus">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان...</p>
+        <div class="load-bar"></div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">کەمێک چاوەڕێ بکە...</p>
     </div>
 
-    <!-- ════ MAIN APP ════ -->
-    <div class="wrapper" id="mainApp">
-
-        <!-- GROUPS COLUMN -->
-        <div class="col-groups">
-            <div class="header">
-                <span class="header-label">گرووپەکان</span>
-                <span class="header-count" id="groupCount">0</span>
-            </div>
-            <div class="scrollable" id="gList"></div>
+    <div id="app" style="display:none;">
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <div class="logo">KAMAL PRO</div>
+            <div class="clock" id="mClock">00:00</div>
         </div>
 
-        <!-- CHANNELS COLUMN -->
-        <div class="col-channels">
-            <div class="header">
-                <span class="header-label">کەناڵەکان</span>
-                <span class="header-count" id="chanCount">0</span>
-            </div>
-            <div class="search-wrap">
-                <input class="search-input" type="text" id="searchInput" placeholder="گەڕان لە کەناڵەکان..." />
-            </div>
-            <div class="scrollable" id="cList"></div>
+        <!-- EPG -->
+        <div class="epg-bar" id="epgBar">
+            <svg viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.5">
+                <rect x="1" y="2" width="14" height="12" rx="2"/>
+                <line x1="1" y1="6" x2="15" y2="6"/>
+            </svg>
+            <span id="epgText">---</span>
         </div>
 
-        <!-- PLAYER COLUMN -->
-        <div class="col-player">
-
-            <!-- INFO BAR -->
-            <div class="info-bar">
-                <div class="info-time-section">
-                    <div id="pClock" class="info-clock">00:00:00</div>
-                    <div id="pDates" class="info-date">بار دەکات...</div>
-                </div>
-
-                <div class="info-divider"></div>
-
-                <div id="pWeatherBox" class="info-weather-section">
-                    <div class="weather-icon-wrap"><span id="pIcon">-</span></div>
-                    <div class="weather-details">
-                        <span class="weather-city" id="pCity">هەولێر</span>
-                        <span class="weather-desc" id="pDesc">---</span>
-                        <span class="weather-gregorian" id="pGregorian">---</span>
-                    </div>
-                    <span class="weather-temp" id="pTemp">--°</span>
-                </div>
+        <!-- PLAYER -->
+        <div class="player-section">
+            <video id="player" controls playsinline></video>
+            <div class="player-overlay">
+                <div class="live-pill">LIVE</div>
+                <div class="channel-name-overlay" id="chanOverlay">KAMAL PRO</div>
             </div>
+        </div>
 
-            <!-- VIDEO -->
-            <div class="player-wrap">
-                <div class="player-glow"></div>
-                <div class="player-border"></div>
-                <video id="player" controls autoplay></video>
-                <div class="brand-corner">KAMAL PRO ULTRA</div>
-            </div>
+        <!-- SWIPE HINT -->
+        <div class="swipe-hint">
+            <span>← کەناڵی پێشوو</span>
+            <span style="color:var(--gold);font-weight:600;" id="chanIndex">1 / 0</span>
+            <span>کەناڵی داهاتوو →</span>
+        </div>
 
-            <!-- NOW PLAYING + EPG -->
-            <div class="now-playing-bar">
-                <div class="channel-title-display">
-                    <div class="playing-dot"></div>
-                    <span class="playing-label">Live</span>
-                    <div id="title">KAMAL PRO ULTRA</div>
-                </div>
-                <div id="epgDisplay" class="epg-pill">
-                    <svg class="epg-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="1" y="2" width="14" height="12" rx="2" stroke="rgba(240,185,11,0.5)" stroke-width="1.2" />
-                        <line x1="1" y1="6" x2="15" y2="6" stroke="rgba(240,185,11,0.5)" stroke-width="1.2" />
-                        <line x1="4" y1="9.5" x2="8" y2="9.5" stroke="rgba(240,185,11,0.4)" stroke-width="1.2" stroke-linecap="round" />
-                        <line x1="4" y1="11.5" x2="10" y2="11.5" stroke="rgba(240,185,11,0.25)" stroke-width="1.2" stroke-linecap="round" />
-                    </svg>
-                    <span id="epgText">---</span>
-                </div>
-            </div>
+        <!-- FAB -->
+        <button class="fab" onclick="openSheet()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            لیستی کەناڵەکان
+        </button>
+    </div>
 
+    <!-- BOTTOM SHEET -->
+    <div class="sheet-backdrop" id="backdrop" onclick="closeSheet()"></div>
+    <div class="sheet" id="sheet">
+        <div class="sheet-handle" onclick="closeSheet()"></div>
+        
+        <div class="chips-scroll" id="chips"></div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="گەڕان لە کەناڵەکان..." oninput="doSearch(this.value)">
+        </div>
+        
+        <div class="channel-scroll">
+            <div class="channel-grid" id="grid"></div>
         </div>
     </div>
+
+    <div class="toast" id="toast"></div>
 
     <script>
-        // لینکە ڕاستەوخۆیەکان - بێ CORS Proxy
         const M3U_URL = 'https://xtream-ie.net/get.php?username=serverblbas&password=serverblbas&type=m3u_plus';
         const EPG_URL = 'https://xtream-ie.net/xmltv.php?username=serverblbas&password=serverblbas';
 
         let allData = [];
-        let currentGroupData = [];
+        let currentList = [];
+        let currentIndex = 0;
         let epgData = {};
+        let hls = null;
         const video = document.getElementById('player');
-        let hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-        let currentActiveUrl = "";
 
-        const kurdistanCities = [
-            { name: "هەولێر", lat: 36.1911, lon: 44.0092 },
-            { name: "سلێمانی", lat: 35.5612, lon: 45.4385 },
-            { name: "دهۆک", lat: 36.8601, lon: 42.9891 },
-            { name: "کەرکووک", lat: 35.4681, lon: 44.3922 },
-            { name: "هەڵەبجە", lat: 35.1778, lon: 45.9861 }
-        ];
-
-        const weatherCodes = {
-            0: { text: 'Clear Sky', icon: 'SUN' },
-            1: { text: 'Mainly Clear', icon: 'SUN' },
-            2: { text: 'Partly Cloudy', icon: 'CLD' },
-            3: { text: 'Cloudy', icon: 'CLD' },
-            45: { text: 'Foggy', icon: 'FOG' },
-            48: { text: 'Foggy', icon: 'FOG' },
-            51: { text: 'Light Drizzle', icon: 'RN' },
-            53: { text: 'Moderate Drizzle', icon: 'RN' },
-            55: { text: 'Dense Drizzle', icon: 'RN' },
-            61: { text: 'Slight Rain', icon: 'RN' },
-            63: { text: 'Moderate Rain', icon: 'RN' },
-            65: { text: 'Heavy Rain', icon: 'RN' },
-            71: { text: 'Slight Snow', icon: 'SNW' },
-            73: { text: 'Moderate Snow', icon: 'SNW' },
-            75: { text: 'Heavy Snow', icon: 'SNW' },
-            80: { text: 'Light Showers', icon: 'RN' },
-            81: { text: 'Showers', icon: 'RN' },
-            82: { text: 'Heavy Showers', icon: 'RN' },
-            95: { text: 'Thunderstorm', icon: 'STM' }
-        };
-
-        const weatherSVGs = {
-            'SUN': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0b90b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
-            'CLD': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aab" stroke-width="2" stroke-linecap="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>`,
-            'RN': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="13" x2="16" y2="15"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="12" y1="15" x2="12" y2="17"/></svg>`,
-            'SNW': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b0d8f5" stroke-width="2" stroke-linecap="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><polyline points="8 16 12 12 16 16"/><line x1="12" y1="12" x2="12" y2="20"/></svg>`,
-            'FOG': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M5 10h14M5 15h14M5 20h14"/></svg>`,
-            'STM': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0b90b" stroke-width="2" stroke-linecap="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/></svg>`
-        };
-
-        let cachedWeather = {};
-        let currentCityIndex = 0;
-
-        window.onload = function() {
-            startLoading();
-            fetchLiveWeather().then(() => showMiniWeather(0));
-            setInterval(fetchLiveWeather, 300000);
-            updateUiDateTime();
-            setInterval(updateUiDateTime, 1000);
-            setInterval(cycleWeather, 5000);
-
-            document.getElementById('searchInput').addEventListener('input', function() {
-                const q = this.value.trim().toLowerCase();
-                const filtered = currentGroupData.filter(x => x.name.toLowerCase().includes(q));
-                renderC(filtered);
-            });
-        };
-
-        async function fetchLiveWeather() {
-            for (let i = 0; i < kurdistanCities.length; i++) {
-                const city = kurdistanCities[i];
-                try {
-                    const res = await fetch(
-                        `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia/Baghdad`
-                        );
-                    if (res.ok) {
-                        const data = await res.json();
-                        const info = weatherCodes[data.current.weather_code] || { text: 'Clear Sky', icon: 'SUN' };
-                        cachedWeather[i] = {
-                            name: city.name,
-                            temp: `${Math.round(data.current.temperature_2m)}`,
-                            desc: info.text,
-                            iconKey: info.icon
-                        };
-                    }
-                } catch (e) {}
-            }
-        }
-
-        function showMiniWeather(index) {
-            const data = cachedWeather[index];
-            if (!data) return;
-            document.getElementById('pCity').innerText = data.name;
-            document.getElementById('pTemp').innerText = data.temp + 'deg';
-            document.getElementById('pDesc').innerText = data.desc;
-            document.getElementById('pIcon').innerHTML = weatherSVGs[data.iconKey] || '-';
-            document.getElementById('pTemp').innerText = data.temp + '\u00b0C';
-        }
-
-        function cycleWeather() {
-            const el = document.getElementById('pWeatherBox');
-            if (!el) return;
-            el.style.opacity = 0;
-            setTimeout(() => {
-                currentCityIndex = (currentCityIndex + 1) % kurdistanCities.length;
-                showMiniWeather(currentCityIndex);
-                el.style.opacity = 1;
-            }, 400);
-        }
-
-        function getKurdishDate(date) {
-            const kurdishMonths = ["خاکەلێوە", "بانەمەڕ", "جۆزەردان", "پوشپەڕ", "گەلاوێژ", "خەرمانان", "ڕەزبەر", "گەڵاڕێزان",
-                "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە"
-            ];
-            try {
-                const PersianFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { day: 'numeric', month: 'numeric',
-                    year: 'numeric' });
-                const parts = PersianFormatter.format(date).split('/');
-                let kYear = parseInt(parts[2]) + 1321;
-                return `${parseInt(parts[1])}ی ${kurdishMonths[parseInt(parts[0]) - 1]}ی ${kYear}`;
-            } catch (e) { return ""; }
-        }
-
-        function getGregorianDateStr(date) {
-            const months = ["کانوونی دووەم", "شوبات", "ئازار", "نیسان", "ئایار", "حوزەیران", "تەممووز", "ئاب", "ئەیلوول",
-                "تشرینی یەکەم", "تشرینی دووەم", "کانوونی یەکەم"
-            ];
-            return `${date.getDate()}ی ${months[date.getMonth()]}ی ${date.getFullYear()}`;
-        }
-
-        function updateUiDateTime() {
-            const now = new Date();
-            document.getElementById('pClock').innerText =
-                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-            let hijriStr = "";
-            try {
-                hijriStr = new Intl.DateTimeFormat('ar-SA', { calendar: 'islamic-umalqura', day: 'numeric',
-                    month: 'long', year: 'numeric' }).format(now).replace('\u0647\u0640', '\u06a9\u06c6\u0686\u06cc');
-            } catch (e) { hijriStr = ""; }
-            document.getElementById('pDates').innerText = `${hijriStr}  |  ${getKurdishDate(now)}`;
-            document.getElementById('pGregorian').innerText = getGregorianDateStr(now);
-        }
-
-        async function startLoading() {
+        // ═══ INIT ═══
+        window.onload = async () => {
+            updateClock();
+            setInterval(updateClock, 1000);
+            
             try {
                 const r = await fetch(M3U_URL);
-                const d = await r.text();
-                parseM3U(d);
+                const txt = await r.text();
+                parseM3U(txt);
                 fetchEPG();
-                document.getElementById('loadingOverlay').style.display = 'none';
-            } catch (e) {
-                document.getElementById('loadingStatus').innerHTML =
-                    "<span style='color:#e53935;'>خەتا لە هێنانی بەستەرەکە! دڵنیابەوە لە ئینتەرنێتەکەت.</span>";
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                if (allData.length > 0) playChannel(0);
+            } catch(e) {
+                document.querySelector('#loader p').innerHTML = '<span style="color:#ff3b30">هەڵە! ئینتەرنێتەکەت بپشکنە</span>';
             }
-        }
 
-        async function fetchEPG() {
-            try {
-                const res = await fetch(EPG_URL);
-                const text = await res.text();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(text, "text/xml");
-                const programmes = xmlDoc.getElementsByTagName("programme");
-                for (let i = 0; i < programmes.length; i++) {
-                    const prog = programmes[i];
-                    const channelId = prog.getAttribute("channel");
-                    const title = prog.getElementsByTagName("title")[0]?.textContent || "";
-                    const start = prog.getAttribute("start");
-                    if (!epgData[channelId]) epgData[channelId] = [];
-                    epgData[channelId].push({ title, start });
+            // Swipe gestures
+            let touchStartX = 0;
+            document.querySelector('.player-section').addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, {passive:true});
+            document.querySelector('.player-section').addEventListener('touchend', e => {
+                const diff = touchStartX - e.changedTouches[0].screenX;
+                if (Math.abs(diff) > 60) {
+                    if (diff > 0 && currentIndex < currentList.length - 1) playChannel(currentIndex + 1);
+                    else if (diff < 0 && currentIndex > 0) playChannel(currentIndex - 1);
                 }
-            } catch (e) {}
+            }, {passive:true});
+        };
+
+        // ═══ CLOCK ═══
+        function updateClock() {
+            const n = new Date();
+            document.getElementById('mClock').innerText = 
+                String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
         }
 
+        // ═══ PARSE ═══
         function parseM3U(data) {
             const lines = data.split('\n');
             let obj = {};
@@ -1041,72 +529,126 @@
                     obj = {};
                 }
             });
-            renderG();
-            const firstBtn = document.querySelector('.group-btn');
-            if (allData.length > 0) filter("هەمووی", firstBtn);
+            renderGroups();
+            currentList = [...allData];
+            renderGrid(currentList);
         }
 
-        function renderG() {
+        async function fetchEPG() {
+            try {
+                const res = await fetch(EPG_URL);
+                const text = await res.text();
+                const xml = new DOMParser().parseFromString(text, "text/xml");
+                const progs = xml.getElementsByTagName("programme");
+                for (let p of progs) {
+                    const cid = p.getAttribute("channel");
+                    const title = p.getElementsByTagName("title")[0]?.textContent || "";
+                    if (!epgData[cid]) epgData[cid] = [];
+                    epgData[cid].push(title);
+                }
+            } catch(e) {}
+        }
+
+        // ═══ RENDER ═══
+        function renderGroups() {
             const gs = ["هەمووی", ...new Set(allData.map(x => x.group))];
-            document.getElementById('groupCount').innerText = gs.length - 1;
-            document.getElementById('gList').innerHTML = gs.map(g => {
-                return `<button class="group-btn" onclick="filter('${g.replace(/'/g,"\\'")}', this)">
-                            <span class="group-dot"></span>
-                            <span>${g}</span>
-                        </button>`;
-            }).join('');
+            document.getElementById('chips').innerHTML = gs.map((g, i) => 
+                `<div class="chip ${i===0?'active':''}" onclick="filterGroup('${g.replace(/'/g,"\\'")}', this)">${g}</div>`
+            ).join('');
         }
 
-        function renderC(list) {
-            document.getElementById('chanCount').innerText = list.length;
-            document.getElementById('cList').innerHTML = list.map((x, index) => {
-                const img = x.logo ? x.logo :
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=1a2030&color=f0b90b&bold=true&size=80`;
-                const isActive = (x.url === currentActiveUrl) ? 'active-channel' : '';
-                return `<div class="chan-card ${isActive}" onclick="play('${x.url.replace(/'/g,"\\'")}', '${x.name.replace(/'/g,"\\'")}', '${x.id}', this)">
-                            <span class="chan-num">${index + 1}</span>
-                            <img src="${img}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=1a2030&color=f0b90b&bold=true&size=80'">
-                            <span class="chan-name">${x.name}</span>
-                            <span class="live-badge">LIVE</span>
-                        </div>`;
+        function renderGrid(list) {
+            document.getElementById('grid').innerHTML = list.map((ch, i) => {
+                const img = ch.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(ch.name)}&background=1a2030&color=f0b90b&bold=true&size=80`;
+                const isActive = currentList[currentIndex]?.url === ch.url;
+                return `
+                <div class="channel-item ${isActive?'active':''}" onclick="playFromSheet(${i})">
+                    <div class="live-dot"></div>
+                    <img src="${img}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(ch.name)}&background=1a2030&color=f0b90b&bold=true&size=80'">
+                    <span>${ch.name}</span>
+                </div>`;
             }).join('');
+            updateIndex();
         }
 
-        function play(u, n, id, element) {
-            currentActiveUrl = u;
-            document.getElementById('title').innerText = n;
-            document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active-channel'));
-            if (element) element.classList.add('active-channel');
-
-            const epgDisplay = document.getElementById('epgDisplay');
+        // ═══ PLAY ═══
+        function playChannel(index) {
+            if (index < 0 || index >= currentList.length) return;
+            currentIndex = index;
+            const ch = currentList[index];
+            
+            document.getElementById('chanOverlay').innerText = ch.name;
+            showToast(ch.name);
+            
+            // EPG
+            const epgBar = document.getElementById('epgBar');
             const epgText = document.getElementById('epgText');
-            if (id && epgData[id] && epgData[id].length > 0) {
-                epgText.innerText = `ئێستا: ${epgData[id][0].title}`;
-                epgDisplay.classList.add('visible');
+            if (ch.id && epgData[ch.id] && epgData[ch.id].length > 0) {
+                epgText.innerText = 'ئێستا: ' + epgData[ch.id][0];
+                epgBar.classList.add('visible');
             } else {
-                epgDisplay.classList.remove('visible');
+                epgBar.classList.remove('visible');
             }
 
+            // HLS
             if (Hls.isSupported()) {
-                hls.destroy();
+                if (hls) hls.destroy();
                 hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-                hls.loadSource(u);
+                hls.loadSource(ch.url);
                 hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = u;
-                video.play().catch(() => {});
+                video.src = ch.url;
+                video.play().catch(()=>{});
             }
+
+            // Update grid highlight
+            renderGrid(currentList);
+            updateIndex();
         }
 
-        function filter(g, btnElement) {
-            document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active-group'));
-            if (btnElement) btnElement.classList.add('active-group');
-            document.getElementById('searchInput').value = '';
-            currentGroupData = (g === "هەمووی") ? allData : allData.filter(x => x.group === g);
-            renderC(currentGroupData);
+        function playFromSheet(index) {
+            playChannel(index);
+            closeSheet();
+        }
+
+        function updateIndex() {
+            document.getElementById('chanIndex').innerText = (currentIndex + 1) + ' / ' + currentList.length;
+        }
+
+        // ═══ FILTER ═══
+        function filterGroup(g, el) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentList = (g === "هەمووی") ? [...allData] : allData.filter(x => x.group === g);
+            currentIndex = 0;
+            renderGrid(currentList);
+            playChannel(0);
+        }
+
+        function doSearch(q) {
+            const term = q.trim().toLowerCase();
+            const filtered = currentList.filter(x => x.name.toLowerCase().includes(term));
+            renderGrid(filtered);
+        }
+
+        // ═══ SHEET ═══
+        function openSheet() {
+            document.getElementById('backdrop').classList.add('open');
+            document.getElementById('sheet').classList.add('open');
+        }
+        function closeSheet() {
+            document.getElementById('backdrop').classList.remove('open');
+            document.getElementById('sheet').classList.remove('open');
+        }
+
+        // ═══ TOAST ═══
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = '▶ ' + msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
         }
     </script>
-
 </body>
 </html>
