@@ -6,8 +6,8 @@
     <title>Zaman IPTV Player Pro</title>
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { display: flex; flex-direction: column; height: 100vh; background: #121212; color: #fff; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+        body { display: flex; flex-direction: column; height: 100vh; background: #0f0f0f; color: #fff; overflow: hidden; }
 
         /* بەشی سەرەوە: شاشەی پەخشکردن */
         #top-section { 
@@ -18,53 +18,74 @@
             justify-content: center; 
             background: #000; 
             padding: 5px;
-            position: relative;
         }
-        video { width: 100%; max-width: 900px; height: 100%; max-height: 380px; background: #000; outline: none; border-radius: 8px; }
-        #status { margin-top: 5px; color: #00bcd4; font-size: 13px; font-weight: bold; text-align: center; }
+        video { width: 100%; max-width: 850px; height: 100%; max-height: 360px; background: #000; outline: none; border-radius: 8px; }
+        #status { margin-top: 6px; color: #00bcd4; font-size: 13px; font-weight: bold; text-align: center; }
 
-        /* بەشی خوارەوە: کۆنترۆڵەکان و لۆگۆکان */
+        /* بەشی خوارەوە */
         #bottom-section { 
-            height: 340px; 
+            height: 360px; 
             background: #181818; 
             display: flex; 
             flex-direction: column; 
-            border-top: 2px solid #333; 
+            border-top: 2px solid #282828; 
         }
         
-        .controls { 
-            display: flex; 
-            gap: 10px;
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 8px 15px; 
-            background: #222; 
-            flex-wrap: wrap;
+        /* بەشی دوگمەی گرووپەکان (کەروێشکەیی بە ئاسۆی Scroll دەبێت) */
+        #groupBar {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            background: #202020;
+            overflow-x: auto;
+            white-space: nowrap;
+            border-bottom: 1px solid #333;
         }
-        .header { font-size: 16px; font-weight: bold; color: #00bcd4; }
-        
-        .inputs-container { display: flex; gap: 10px; flex: 1; max-width: 600px; }
-        
-        select, input { 
-            padding: 8px 12px; 
-            background: #333; 
-            color: #fff; 
-            border: 1px solid #444; 
-            border-radius: 5px; 
+        #groupBar::-webkit-scrollbar { height: 4px; }
+        #groupBar::-webkit-scrollbar-thumb { background: #00bcd4; border-radius: 4px; }
+
+        .group-btn {
+            background: #2a2a2a;
+            color: #ccc;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid #444;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .group-btn:hover, .group-btn.active {
+            background: #00bcd4;
+            color: #000;
+            font-weight: bold;
+            border-color: #00bcd4;
+        }
+
+        /* بەشی گەڕان */
+        .search-box {
+            padding: 6px 12px;
+            background: #181818;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #252525;
+            border: 1px solid #3b3b3b;
+            color: #fff;
+            border-radius: 6px;
             outline: none;
-            font-size: 13px;
+            font-size: 12px;
         }
-        select { flex: 1; cursor: pointer; }
-        input { flex: 1; }
 
         /* لیستی کەناڵەکان بە لۆگۆوە */
         #channelList { 
             flex: 1; 
             overflow-y: auto; 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
-            gap: 10px; 
-            padding: 12px; 
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+            gap: 8px; 
+            padding: 10px; 
             list-style: none; 
         }
 
@@ -74,18 +95,16 @@
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            padding: 8px; 
-            background: #252525; 
-            border-radius: 8px; 
+            padding: 6px; 
+            background: #222; 
+            border-radius: 6px; 
             cursor: pointer; 
-            transition: all 0.2s ease; 
+            transition: all 0.2s; 
             border: 1px solid #333;
-            height: 95px;
+            height: 90px;
         }
-        .channel-item:hover { background: #00bcd4; border-color: #00bcd4; transform: scale(1.03); }
-        .channel-item:hover .channel-name { color: #000; font-weight: bold; }
-        
-        .channel-item img { width: 45px; height: 45px; object-fit: contain; margin-bottom: 6px; background: #121212; border-radius: 6px; padding: 2px; }
+        .channel-item:hover { background: #333; border-color: #00bcd4; transform: translateY(-2px); }
+        .channel-item img { width: 42px; height: 42px; object-fit: contain; margin-bottom: 4px; background: #111; border-radius: 4px; padding: 2px; }
         .channel-name { font-size: 11px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: #ddd; }
     </style>
 </head>
@@ -94,20 +113,18 @@
     <!-- شاشەی سەرەوە -->
     <div id="top-section">
         <video id="videoPlayer" controls autoplay></video>
-        <div id="status">داتا لە سێرڤەرەوە باردەکرێت...</div>
+        <div id="status">تکایە چاوەڕێ بکە، سێرڤەر باردەکرێت...</div>
     </div>
 
-    <!-- بەشی خوارەوە (گرووپ، گەڕان و لۆگۆکان) -->
+    <!-- بەشی خوارەوە -->
     <div id="bottom-section">
-        <div class="controls">
-            <div class="header">ZAMAN IPTV</div>
-            
-            <div class="inputs-container">
-                <select id="groupSelect" onchange="filterChannels()">
-                    <option value="ALL">تەواوی گرووپەکان (کۆ دەکرێنەوە...)</option>
-                </select>
-                <input type="text" id="searchInput" placeholder="گەڕان بەدوای کەناڵ..." oninput="filterChannels()">
-            </div>
+        <!-- دوگمەی گرووپەکان لێرە دروست دەبن -->
+        <div id="groupBar">
+            <button class="group-btn active" onclick="selectGroup('ALL', this)">هەموو کەناڵەکان</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 گەڕان بەدوای کەناڵدا..." oninput="filterChannels()">
         </div>
 
         <ul id="channelList"></ul>
@@ -116,100 +133,113 @@
     <script>
         const M3U_URL = "https://xtream-ie.net/get.php?username=serverblbas&password=serverblbas&type=m3u_plus";
         let allChannels = [];
+        let currentGroup = "ALL";
 
-        // خزمەتگوزاری پروکسی بۆ تێپەڕاندنی کێشەی CORS لە وێبگەردا
-        const PROXY_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(M3U_URL);
-
-        fetch(PROXY_URL)
-            .then(res => {
-                if(!res.ok) throw new Error("سێرڤەرەکە وەڵامی نەدایەوە");
-                return res.text();
-            })
+        // وەرگرتنی فایلی M3U ڕاستەوخۆ
+        fetch(M3U_URL)
+            .then(res => res.text())
             .then(data => {
                 parseM3U(data);
-                document.getElementById('status').innerText = "کەناڵەکان بارکران! گرووپێک یان کەناڵێک هەڵبژێرە.";
+                document.getElementById('status').innerText = "کەناڵەکان بارکران! گرووپێک دیاری بکە.";
             })
             .catch(err => {
-                // ئەگەر پروکسیەکەش نەبوو ڕاستەوخۆ تاقی دەکاتەوە
-                fetch(M3U_URL)
-                    .then(res => res.text())
-                    .then(data => parseM3U(data))
+                // ئەگەر وێبگەر بلۆکی کرد، بە پروکسی دەیهێنێت
+                fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(M3U_URL))
+                    .then(r => r.text())
+                    .then(d => parseM3U(d))
                     .catch(e => {
-                        document.getElementById('status').innerText = "کێشە لە بارکردنی سێرڤەر هەیە. تکایە دڵنیابەوە لە بەستەری ئینتەرنێت.";
+                        document.getElementById('status').innerText = "کێشە لە پەیوەندی سێرڤەر هەیە.";
                     });
             });
 
-        // شیکردنەوەی پێشکەوتووی M3U
         function parseM3U(data) {
             const lines = data.split('\n');
             let currentChannel = {};
-            const groups = new Set();
+            const groupsSet = new Set();
 
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i].trim();
                 
                 if (line.startsWith('#EXTINF:')) {
-                    // وەرگرتنی ناوی گرووپ بە شێوازێکی وردتر
-                    let group = "سەرەکی / Uncategorized";
-                    const groupMatch = line.match(/group-title="([^"]+)"/i);
-                    if (groupMatch && groupMatch[1].trim() !== "") {
-                        group = groupMatch[1].trim();
-                    }
+                    // وەرگرتنی گرووپ
+                    let group = "گرووپی سەرەکی";
+                    const gMatch = line.match(/group-title="([^"]+)"/i);
+                    if (gMatch && gMatch[1].trim() !== "") group = gMatch[1].trim();
 
                     // وەرگرتنی لۆگۆ
                     let logo = "";
-                    const logoMatch = line.match(/tvg-logo="([^"]+)"/i);
-                    if (logoMatch) {
-                        logo = logoMatch[1].trim();
-                    }
+                    const lMatch = line.match(/tvg-logo="([^"]+)"/i);
+                    if (lMatch) logo = lMatch[1].trim();
 
-                    // وەرگرتنی ناوی کەناڵ
-                    const nameIndex = line.lastIndexOf(',');
-                    let name = nameIndex !== -1 ? line.substring(nameIndex + 1).trim() : "کەناڵ";
+                    // وەرگرتنی ناو
+                    const idx = line.lastIndexOf(',');
+                    let name = idx !== -1 ? line.substring(idx + 1).trim() : "کەناڵ";
 
                     currentChannel = { name, group, logo };
+                    groupsSet.add(group);
                 } else if (line.startsWith('http://') || line.startsWith('https://')) {
                     currentChannel.url = line;
-                    if (currentChannel.name) {
-                        allChannels.push(currentChannel);
-                        groups.add(currentChannel.group);
-                    }
+                    if (currentChannel.name) allChannels.push(currentChannel);
                     currentChannel = {};
                 }
             }
 
-            // پڕکردنەوەی درۆپ داونی گرووپەکان
-            const select = document.getElementById('groupSelect');
-            select.innerHTML = '<option value="ALL">تەواوی گرووپەکان (All Categories)</option>';
-            
-            Array.from(groups).sort().forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g;
-                opt.innerText = g;
-                select.appendChild(opt);
+            // دروستکردنی دوگمەی گرووپەکان بە ئاسۆی
+            const groupBar = document.getElementById('groupBar');
+            Array.from(groupsSet).sort().forEach(g => {
+                const btn = document.createElement('button');
+                btn.className = 'group-btn';
+                btn.innerText = g;
+                btn.onclick = () => selectGroup(g, btn);
+                groupBar.appendChild(btn);
             });
 
             renderChannels(allChannels);
         }
 
-        // نیشاندانی کەناڵەکان
+        function selectGroup(groupName, btnElement) {
+            currentGroup = groupName;
+            
+            // گۆڕینی ڕەنگی دوگمەی چالاک
+            document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            filterChannels();
+        }
+
+        function filterChannels() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            let filtered = allChannels;
+
+            if (currentGroup !== 'ALL') {
+                filtered = filtered.filter(c => c.group === currentGroup);
+            }
+
+            if (searchText !== '') {
+                filtered = filtered.filter(c => c.name.toLowerCase().includes(searchText));
+            }
+
+            renderChannels(filtered);
+        }
+
         function renderChannels(channels) {
             const list = document.getElementById('channelList');
             list.innerHTML = '';
 
             if (channels.length === 0) {
-                list.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888; padding: 20px;">هیچ کەناڵێک نەدۆزرایەوە</div>';
+                list.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #777; padding: 20px;">هیچ کەناڵێک لەم گرووپەدا نییە</div>';
                 return;
             }
 
-            // رێگریکردن لە سستبوونی پەڕەکە بە نیشاندانی ١٥٠ کەناڵی یەکەم لە کاتی فلتەردا
-            channels.slice(0, 150).forEach(ch => {
+            // نیشاندانی کەناڵەکان
+            channels.slice(0, 100).forEach(ch => {
                 const li = document.createElement('li');
                 li.className = 'channel-item';
                 
                 const img = document.createElement('img');
-                img.src = ch.logo || 'https://via.placeholder.com/50?text=TV';
-                img.onerror = () => { img.src = 'https://via.placeholder.com/50?text=TV'; };
+                img.src = ch.logo || 'https://via.placeholder.com/40?text=TV';
+                img.onerror = () => { img.src = 'https://via.placeholder.com/40?text=TV'; };
 
                 const span = document.createElement('span');
                 span.className = 'channel-name';
@@ -223,31 +253,10 @@
             });
         }
 
-        // فلتەرکردنی خێرا بۆ گرووپەکان و ناوەکان
-        function filterChannels() {
-            const selectedGroup = document.getElementById('groupSelect').value;
-            const searchText = document.getElementById('searchInput').value.toLowerCase().trim();
-
-            let filtered = allChannels;
-
-            // 1. فلتەری گرووپ
-            if (selectedGroup !== 'ALL') {
-                filtered = filtered.filter(c => c.group === selectedGroup);
-            }
-
-            // 2. فلتەری گەڕان
-            if (searchText !== '') {
-                filtered = filtered.filter(c => c.name.toLowerCase().includes(searchText));
-            }
-
-            renderChannels(filtered);
-        }
-
-        // لێدانی کەناڵ
         function playStream(url, name) {
             const video = document.getElementById('videoPlayer');
             video.src = url;
-            document.getElementById('status').innerText = "لە پەخشدایە: " + name;
+            document.getElementById('status').innerText = "پەخشکردنی: " + name;
         }
     </script>
 </body>
