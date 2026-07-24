@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zaman IPTV Player Pro</title>
+    <title>Zaman IPTV Player Direct</title>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
@@ -31,7 +31,7 @@
             border-top: 2px solid #282828; 
         }
         
-        /* بەشی دوگمەی گرووپەکان (کەروێشکەیی بە ئاسۆی Scroll دەبێت) */
+        /* بەشی دوگمەی گرووپەکان */
         #groupBar {
             display: flex;
             gap: 8px;
@@ -118,7 +118,7 @@
 
     <!-- بەشی خوارەوە -->
     <div id="bottom-section">
-        <!-- دوگمەی گرووپەکان لێرە دروست دەبن -->
+        <!-- دوگمەی گرووپەکان -->
         <div id="groupBar">
             <button class="group-btn active" onclick="selectGroup('ALL', this)">هەموو کەناڵەکان</button>
         </div>
@@ -135,21 +135,18 @@
         let allChannels = [];
         let currentGroup = "ALL";
 
-        // وەرگرتنی فایلی M3U ڕاستەوخۆ
+        // ڕاکێشانی ڕاستەوخۆ لە سێرڤەرەوە بێ بەکارهێنانی پروکسی
         fetch(M3U_URL)
-            .then(res => res.text())
+            .then(res => {
+                if(!res.ok) throw new Error("کێشە لە وەلامی سێرڤەر");
+                return res.text();
+            })
             .then(data => {
                 parseM3U(data);
                 document.getElementById('status').innerText = "کەناڵەکان بارکران! گرووپێک دیاری بکە.";
             })
             .catch(err => {
-                // ئەگەر وێبگەر بلۆکی کرد، بە پروکسی دەیهێنێت
-                fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(M3U_URL))
-                    .then(r => r.text())
-                    .then(d => parseM3U(d))
-                    .catch(e => {
-                        document.getElementById('status').innerText = "کێشە لە پەیوەندی سێرڤەر هەیە.";
-                    });
+                document.getElementById('status').innerText = "کێشە لە وەرگرتنی لیستەکە هەیە. تکایە دڵنیابەوە ئینتەرنێتەکەت هەیە.";
             });
 
         function parseM3U(data) {
@@ -184,7 +181,7 @@
                 }
             }
 
-            // دروستکردنی دوگمەی گرووپەکان بە ئاسۆی
+            // دروستکردنی دوگمەی گرووپەکان
             const groupBar = document.getElementById('groupBar');
             Array.from(groupsSet).sort().forEach(g => {
                 const btn = document.createElement('button');
@@ -233,7 +230,7 @@
             }
 
             // نیشاندانی کەناڵەکان
-            channels.slice(0, 100).forEach(ch => {
+            channels.slice(0, 150).forEach(ch => {
                 const li = document.createElement('li');
                 li.className = 'channel-item';
                 
