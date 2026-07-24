@@ -1,1113 +1,201 @@
 <!DOCTYPE html>
-<html lang="ku" dir="rtl">
+<html lang="kmr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KAMAL PRO ULTRA</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest">
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zaman IPTV Player</title>
+
     <style>
-        :root {
-            --gold: #f0b90b;
-            --gold-dim: #c9940a;
-            --gold-glow: rgba(240, 185, 11, 0.18);
-            --gold-ultra: rgba(240, 185, 11, 0.06);
-            --bg: #060a0e;
-            --surface: #0b1018;
-            --surface2: #0f1520;
-            --surface3: #141c28;
-            --border: rgba(240, 185, 11, 0.12);
-            --border-dim: rgba(255, 255, 255, 0.06);
-            --text: #e8eaf0;
-            --text-dim: rgba(232, 234, 240, 0.5);
-            --text-muted: rgba(232, 234, 240, 0.28);
-            --red: #e53935;
-            --sidebar-w: 220px;
-            --chan-w: 290px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { display: flex; flex-direction: column; height: 100vh; background: #121212; color: #fff; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        /* بەشی سەرەوە: پەخشکەرەکە (Video Player) */
+        #top-section { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            background: #000; 
+            padding: 10px;
         }
+        video { width: 100%; max-width: 800px; height: 100%; max-height: 400px; background: #000; outline: none; border-radius: 8px; }
+        #status { margin-top: 8px; color: #00bcd4; font-size: 14px; font-weight: bold; }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Noto Naskh Arabic', 'Segoe UI', sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            background-image:
-                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(240, 185, 11, 0.07) 0%, transparent 60%),
-                radial-gradient(ellipse 40% 30% at 80% 90%, rgba(240, 185, 11, 0.04) 0%, transparent 50%);
+        /* بەشی خوارەوە: گرووپەکان و کەناڵەکان */
+        #bottom-section { 
+            height: 320px; 
+            background: #1e1e1e; 
+            display: flex; 
+            flex-direction: column; 
+            border-top: 2px solid #333; 
         }
-
-        /* ════════════════════════════════
-           LOADING SCREEN
-        ════════════════════════════════ */
-        #loadingOverlay {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            background-image: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(240, 185, 11, 0.06) 0%, transparent 70%);
+        
+        .controls { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 10px 15px; 
+            background: #252525; 
         }
-
-        .load-logo {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 3.2rem;
-            font-weight: 700;
-            letter-spacing: 0.3em;
-            background: linear-gradient(135deg, #f0b90b 0%, #ffe566 40%, #c9940a 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        .load-sub {
-            font-size: 0.75rem;
-            letter-spacing: 0.35em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 48px;
-            font-family: 'Rajdhani', sans-serif;
-        }
-
-        .load-spinner-wrap {
-            position: relative;
-            width: 70px;
-            height: 70px;
-            margin-bottom: 32px;
-        }
-
-        .load-ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            animation: spin 1.4s linear infinite;
-        }
-        .load-ring:nth-child(1) {
-            border-top-color: var(--gold);
-            animation-duration: 1.2s;
-        }
-        .load-ring:nth-child(2) {
-            border-right-color: rgba(240, 185, 11, 0.4);
-            animation-duration: 1.8s;
-            inset: 8px;
-            animation-direction: reverse;
-        }
-        .load-ring:nth-child(3) {
-            border-bottom-color: rgba(240, 185, 11, 0.2);
-            animation-duration: 2.4s;
-            inset: 16px;
-        }
-
-        .load-dot {
-            position: absolute;
-            inset: 28px;
-            background: var(--gold);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--gold);
-            animation: pulse-dot 1.2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.6;
-                transform: scale(0.8);
-            }
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        #loadingStatus {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            letter-spacing: 0.1em;
-            text-align: center;
-            max-width: 300px;
-            line-height: 1.6;
-        }
-
-        .load-bar-wrap {
-            width: 240px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .load-bar-fill {
-            height: 100%;
-            width: 40%;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
-            border-radius: 2px;
-            animation: load-sweep 1.8s ease-in-out infinite;
-        }
-        @keyframes load-sweep {
-            0% {
-                transform: translateX(-200%);
-            }
-            100% {
-                transform: translateX(500%);
-            }
-        }
-
-        /* ════════════════════════════════
-           LAYOUT
-        ════════════════════════════════ */
-        .wrapper {
-            display: flex;
-            height: 100vh;
-        }
-
-        /* ════════════════════════════════
-           LEFT SIDEBAR - GROUPS
-        ════════════════════════════════ */
-        .col-groups {
-            width: var(--sidebar-w);
-            background: var(--surface);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .col-groups::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 1px;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent, var(--gold), transparent);
-            opacity: 0.3;
-        }
-
-        .col-channels {
-            width: var(--chan-w);
-            background: var(--surface);
-            border-left: 1px solid var(--border-dim);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        /* ════════════════════════════════
-           HEADERS
-        ════════════════════════════════ */
-        .header {
-            padding: 0 16px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            background: rgba(240, 185, 11, 0.03);
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .header-label {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            color: var(--gold);
-        }
-
-        .header-count {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.72rem;
-            background: var(--gold-ultra);
-            border: 1px solid var(--border);
-            color: var(--gold-dim);
-            padding: 2px 8px;
-            border-radius: 20px;
-            letter-spacing: 0.05em;
-        }
-
-        /* ════════════════════════════════
-           SEARCH BAR
-        ════════════════════════════════ */
-        .search-wrap {
-            padding: 10px 12px 6px;
-            flex-shrink: 0;
-        }
-
-        .search-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-dim);
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: var(--text);
-            font-size: 0.82rem;
-            font-family: 'Noto Naskh Arabic', sans-serif;
+        .header { font-size: 16px; font-weight: bold; color: #00bcd4; }
+        #groupSelect { 
+            padding: 8px 12px; 
+            background: #333; 
+            color: #fff; 
+            border: 1px solid #444; 
+            border-radius: 5px; 
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            direction: rtl;
+            font-size: 14px;
         }
 
-        .search-input:focus {
-            border-color: rgba(240, 185, 11, 0.35);
-            box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.07);
+        /* لیستی کەناڵەکان و لۆگۆکان بە شێوەی تۆڕی خوارەوە (Grid Layout) */
+        #channelList { 
+            flex: 1; 
+            overflow-y: auto; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
+            gap: 10px; 
+            padding: 15px; 
+            list-style: none; 
         }
 
-        .search-input::placeholder {
-            color: var(--text-muted);
+        /* شێوازی هەر کارتێکی کەناڵ */
+        .channel-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 10px; 
+            background: #2a2a2a; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: transform 0.2s, background 0.2s; 
+            border: 1px solid #333;
         }
-
-        /* ════════════════════════════════
-           SCROLLABLE
-        ════════════════════════════════ */
-        .scrollable {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px;
-        }
-
-        .scrollable::-webkit-scrollbar {
-            width: 4px;
-        }
-        .scrollable::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .scrollable::-webkit-scrollbar-thumb {
-            background: var(--gold-glow);
-            border-radius: 4px;
-        }
-        .scrollable::-webkit-scrollbar-thumb:hover {
-            background: rgba(240, 185, 11, 0.3);
-        }
-
-        /* ════════════════════════════════
-           GROUP BUTTONS
-        ════════════════════════════════ */
-        .group-btn {
-            width: 100%;
-            padding: 10px 12px;
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-dim);
-            cursor: pointer;
-            text-align: right;
-            border-radius: 8px;
-            margin-bottom: 3px;
-            transition: all 0.18s ease;
-            font-size: 0.82rem;
-            font-family: 'Noto Naskh Arabic', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .group-btn::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 3px;
-            height: 100%;
-            background: var(--gold);
-            border-radius: 0 3px 3px 0;
-            transform: scaleY(0);
-            transition: transform 0.18s ease;
-        }
-
-        .group-btn:hover {
-            background: rgba(240, 185, 11, 0.07);
-            color: var(--text);
-            border-color: var(--border);
-        }
-
-        .group-btn.active-group {
-            background: linear-gradient(90deg, rgba(240, 185, 11, 0.18), rgba(240, 185, 11, 0.07)) !important;
-            color: var(--gold) !important;
-            font-weight: 600;
-            border-color: rgba(240, 185, 11, 0.25) !important;
-            box-shadow: 0 2px 16px rgba(240, 185, 11, 0.08);
-        }
-
-        .group-btn.active-group::before {
-            transform: scaleY(1);
-        }
-
-        .group-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--text-muted);
-            flex-shrink: 0;
-            transition: background 0.18s;
-        }
-
-        .group-btn.active-group .group-dot {
-            background: var(--gold);
-            box-shadow: 0 0 6px var(--gold);
-        }
-
-        /* ════════════════════════════════
-           CHANNEL CARDS
-        ════════════════════════════════ */
-        .chan-card {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 10px;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-bottom: 4px;
-            transition: all 0.18s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .chan-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--border-dim);
-        }
-
-        .chan-card img {
-            width: 38px;
-            height: 38px;
-            object-fit: contain;
-            background: white;
-            border-radius: 6px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        .chan-card.active-channel {
-            background: linear-gradient(90deg, rgba(240, 185, 11, 0.14), rgba(240, 185, 11, 0.05)) !important;
-            border-color: rgba(240, 185, 11, 0.3) !important;
-            box-shadow: 0 0 20px rgba(240, 185, 11, 0.08), inset 3px 0 0 var(--gold);
-        }
-
-        .chan-card.active-channel .chan-name {
-            color: var(--gold);
-            font-weight: 600;
-        }
-
-        .chan-num {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            min-width: 22px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .chan-card.active-channel .chan-num {
-            color: var(--gold-dim);
-        }
-
-        .chan-name {
-            font-size: 0.82rem;
-            color: var(--text-dim);
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            line-height: 1.3;
-        }
-
-        .live-badge {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.55rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            background: var(--red);
-            color: white;
-            padding: 2px 5px;
-            border-radius: 3px;
-            flex-shrink: 0;
-            display: none;
-        }
-
-        .chan-card.active-channel .live-badge {
-            display: block;
-            animation: blink-live 1.5s ease-in-out infinite;
-        }
-        @keyframes blink-live {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        /* ════════════════════════════════
-           PLAYER AREA
-        ════════════════════════════════ */
-        .col-player {
-            flex: 1;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            padding: 16px 20px 16px;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            gap: 12px;
-        }
-
-        /* ════════════════════════════════
-           INFO BAR
-        ════════════════════════════════ */
-        .info-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 860px;
-            background: rgba(15, 21, 32, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            padding: 10px 20px;
-            border-radius: 14px;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(240, 185, 11, 0.04);
-            flex-shrink: 0;
-        }
-
-        .info-time-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 2px;
-        }
-
-        .info-clock {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 2rem;
-            font-weight: 300;
-            color: #fff;
-            letter-spacing: 0.06em;
-            line-height: 1;
-        }
-
-        .info-date {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            letter-spacing: 0.03em;
-            line-height: 1.4;
-        }
-
-        .info-divider {
-            width: 1px;
-            height: 36px;
-            background: linear-gradient(to bottom, transparent, var(--border), transparent);
-        }
-
-        .info-weather-section {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 8px 18px;
-            background: rgba(240, 185, 11, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            cursor: default;
-            transition: opacity 0.4s ease-in-out;
-        }
-
-        .weather-icon-wrap {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(240, 185, 11, 0.1);
-            border-radius: 50%;
-            font-size: 1.1rem;
-            flex-shrink: 0;
-        }
-
-        .weather-details {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 1px;
-        }
-        .weather-city {
-            font-weight: 600;
-            color: #fff;
-            font-size: 0.82rem;
-        }
-        .weather-desc {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-        }
-        .weather-gregorian {
-            color: var(--gold-dim);
-            font-size: 0.68rem;
-        }
-
-        .weather-temp {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--gold);
-            line-height: 1;
-        }
-
-        /* ════════════════════════════════
-           VIDEO PLAYER CONTAINER
-        ════════════════════════════════ */
-        .player-wrap {
-            width: 100%;
-            max-width: 860px;
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .player-border {
-            position: absolute;
-            inset: -1px;
-            border-radius: 15px;
-            background: linear-gradient(135deg, rgba(240, 185, 11, 0.4), transparent 40%, transparent 60%, rgba(240, 185, 11, 0.2));
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .player-glow {
-            position: absolute;
-            inset: -20px;
-            border-radius: 20px;
-            background: radial-gradient(ellipse at center, rgba(240, 185, 11, 0.08) 0%, transparent 70%);
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        video {
-            width: 100%;
-            aspect-ratio: 16/9;
-            border-radius: 14px;
-            display: block;
-            background: #000;
-            position: relative;
-            z-index: 1;
-            outline: none;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(240, 185, 11, 0.15);
-        }
-
-        /* ════════════════════════════════
-           CHANNEL TITLE + EPG
-        ════════════════════════════════ */
-        .now-playing-bar {
-            width: 100%;
-            max-width: 860px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-
-        .channel-title-display {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .playing-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--red);
-            box-shadow: 0 0 8px var(--red);
-            animation: blink-live 1.5s ease-in-out infinite;
-            flex-shrink: 0;
-        }
-
-        .playing-label {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 0.2em;
-            color: var(--red);
-            text-transform: uppercase;
-        }
-
-        #title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--gold);
-            letter-spacing: 0.03em;
-        }
-
-        .epg-pill {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-dim);
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: 0.78rem;
-            color: var(--text-dim);
-            max-width: 340px;
-            overflow: hidden;
-        }
-
-        .epg-pill.visible {
-            display: flex;
-        }
-
-        .epg-icon {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
-
-        /* ════════════════════════════════
-           BRAND WATERMARK
-        ════════════════════════════════ */
-        .brand-corner {
-            position: absolute;
-            bottom: 14px;
-            left: 14px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.25em;
-            color: rgba(240, 185, 11, 0.25);
-            text-transform: uppercase;
-            pointer-events: none;
-            user-select: none;
-        }
-
-        /* ════════════════════════════════
-           RESPONSIVE
-        ════════════════════════════════ */
-        @media (max-width: 900px) {
-            .wrapper {
-                flex-direction: column;
-                overflow-y: auto;
-                height: auto;
-            }
-            body {
-                overflow: auto;
-            }
-            .col-groups,
-            .col-channels {
-                width: 100%;
-                height: 180px;
-                flex-direction: row;
-                flex-wrap: nowrap;
-            }
-            .col-groups {
-                flex-direction: column;
-            }
-            .col-channels {
-                flex-direction: column;
-            }
-            .col-player {
-                padding: 12px;
-                min-height: 70vh;
-                justify-content: flex-start;
-                padding-top: 20px;
-            }
-            .info-bar {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .info-bar {
-                padding: 10px 14px;
-            }
-            .info-clock {
-                font-size: 1.5rem;
-            }
-            .weather-temp {
-                font-size: 1.2rem;
-            }
-        }
+        .channel-item:hover { background: #383838; transform: translateY(-3px); }
+        .channel-item img { width: 50px; height: 50px; object-fit: contain; margin-bottom: 8px; background: #121212; border-radius: 6px; padding: 2px; }
+        .channel-name { font-size: 12px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: #eee; }
     </style>
-<base target="_blank">
 </head>
 <body>
 
-    <!-- ════ LOADING SCREEN ════ -->
-    <div id="loadingOverlay">
-        <div class="load-spinner-wrap">
-            <div class="load-ring"></div>
-            <div class="load-ring"></div>
-            <div class="load-ring"></div>
-            <div class="load-dot"></div>
-        </div>
-        <div class="load-logo">KAMAL PRO</div>
-        <div class="load-sub">ULTRA IPTV PLAYER</div>
-        <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
-        <p id="loadingStatus">کەمێک چاوەڕێ بکە بۆ بارکردنی کەناڵەکان...</p>
+    <!-- بەشی سەرەوە: شاشەی ڤیدیۆ -->
+    <div id="top-section">
+        <video id="videoPlayer" controls autoplay></video>
+        <div id="status">کەناڵێک لە خوارەوە هەڵبژێرە...</div>
     </div>
 
-    <!-- ════ MAIN APP ════ -->
-    <div class="wrapper" id="mainApp">
-
-        <!-- GROUPS COLUMN -->
-        <div class="col-groups">
-            <div class="header">
-                <span class="header-label">گرووپەکان</span>
-                <span class="header-count" id="groupCount">0</span>
-            </div>
-            <div class="scrollable" id="gList"></div>
+    <!-- بەشی خوارەوە: گرووپ و لۆگۆکان -->
+    <div id="bottom-section">
+        <div class="controls">
+            <div class="header">ZAMAN IPTV</div>
+            <select id="groupSelect" onchange="filterChannels()">
+                <option value="ALL">هەموو گرووپەکان (All Groups)</option>
+            </select>
         </div>
-
-        <!-- CHANNELS COLUMN -->
-        <div class="col-channels">
-            <div class="header">
-                <span class="header-label">کەناڵەکان</span>
-                <span class="header-count" id="chanCount">0</span>
-            </div>
-            <div class="search-wrap">
-                <input class="search-input" type="text" id="searchInput" placeholder="گەڕان لە کەناڵەکان..." />
-            </div>
-            <div class="scrollable" id="cList"></div>
-        </div>
-
-        <!-- PLAYER COLUMN -->
-        <div class="col-player">
-
-            <!-- INFO BAR -->
-            <div class="info-bar">
-                <div class="info-time-section">
-                    <div id="pClock" class="info-clock">00:00:00</div>
-                    <div id="pDates" class="info-date">بار دەکات...</div>
-                </div>
-
-                <div class="info-divider"></div>
-
-                <div id="pWeatherBox" class="info-weather-section">
-                    <div class="weather-icon-wrap"><span id="pIcon">-</span></div>
-                    <div class="weather-details">
-                        <span class="weather-city" id="pCity">هەولێر</span>
-                        <span class="weather-desc" id="pDesc">---</span>
-                        <span class="weather-gregorian" id="pGregorian">---</span>
-                    </div>
-                    <span class="weather-temp" id="pTemp">--°</span>
-                </div>
-            </div>
-
-            <!-- VIDEO -->
-            <div class="player-wrap">
-                <div class="player-glow"></div>
-                <div class="player-border"></div>
-                <video id="player" controls autoplay></video>
-                <div class="brand-corner">KAMAL PRO ULTRA</div>
-            </div>
-
-            <!-- NOW PLAYING + EPG -->
-            <div class="now-playing-bar">
-                <div class="channel-title-display">
-                    <div class="playing-dot"></div>
-                    <span class="playing-label">Live</span>
-                    <div id="title">KAMAL PRO ULTRA</div>
-                </div>
-                <div id="epgDisplay" class="epg-pill">
-                    <svg class="epg-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="1" y="2" width="14" height="12" rx="2" stroke="rgba(240,185,11,0.5)" stroke-width="1.2" />
-                        <line x1="1" y1="6" x2="15" y2="6" stroke="rgba(240,185,11,0.5)" stroke-width="1.2" />
-                        <line x1="4" y1="9.5" x2="8" y2="9.5" stroke="rgba(240,185,11,0.4)" stroke-width="1.2" stroke-linecap="round" />
-                        <line x1="4" y1="11.5" x2="10" y2="11.5" stroke="rgba(240,185,11,0.25)" stroke-width="1.2" stroke-linecap="round" />
-                    </svg>
-                    <span id="epgText">---</span>
-                </div>
-            </div>
-
-        </div>
+        <ul id="channelList"></ul>
     </div>
 
     <script>
-        // لینکە ڕاستەوخۆیەکان - بێ CORS Proxy
-        const M3U_URL = 'https://xtream-ie.net/get.php?username=serverblbas&password=serverblbas&type=m3u_plus';
-        const EPG_URL = 'https://xtream-ie.net/xmltv.php?username=serverblbas&password=serverblbas';
+        const M3U_URL = "https://xtream-ie.net/get.php?username=serverblbas&password=serverblbas&type=m3u_plus";
+        let allChannels = [];
 
-        let allData = [];
-        let currentGroupData = [];
-        let epgData = {};
-        const video = document.getElementById('player');
-        let hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-        let currentActiveUrl = "";
-
-        const kurdistanCities = [
-            { name: "هەولێر", lat: 36.1911, lon: 44.0092 },
-            { name: "سلێمانی", lat: 35.5612, lon: 45.4385 },
-            { name: "دهۆک", lat: 36.8601, lon: 42.9891 },
-            { name: "کەرکووک", lat: 35.4681, lon: 44.3922 },
-            { name: "هەڵەبجە", lat: 35.1778, lon: 45.9861 }
-        ];
-
-        const weatherCodes = {
-            0: { text: 'Clear Sky', icon: 'SUN' },
-            1: { text: 'Mainly Clear', icon: 'SUN' },
-            2: { text: 'Partly Cloudy', icon: 'CLD' },
-            3: { text: 'Cloudy', icon: 'CLD' },
-            45: { text: 'Foggy', icon: 'FOG' },
-            48: { text: 'Foggy', icon: 'FOG' },
-            51: { text: 'Light Drizzle', icon: 'RN' },
-            53: { text: 'Moderate Drizzle', icon: 'RN' },
-            55: { text: 'Dense Drizzle', icon: 'RN' },
-            61: { text: 'Slight Rain', icon: 'RN' },
-            63: { text: 'Moderate Rain', icon: 'RN' },
-            65: { text: 'Heavy Rain', icon: 'RN' },
-            71: { text: 'Slight Snow', icon: 'SNW' },
-            73: { text: 'Moderate Snow', icon: 'SNW' },
-            75: { text: 'Heavy Snow', icon: 'SNW' },
-            80: { text: 'Light Showers', icon: 'RN' },
-            81: { text: 'Showers', icon: 'RN' },
-            82: { text: 'Heavy Showers', icon: 'RN' },
-            95: { text: 'Thunderstorm', icon: 'STM' }
-        };
-
-        const weatherSVGs = {
-            'SUN': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0b90b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
-            'CLD': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aab" stroke-width="2" stroke-linecap="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>`,
-            'RN': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="13" x2="16" y2="15"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="12" y1="15" x2="12" y2="17"/></svg>`,
-            'SNW': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b0d8f5" stroke-width="2" stroke-linecap="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><polyline points="8 16 12 12 16 16"/><line x1="12" y1="12" x2="12" y2="20"/></svg>`,
-            'FOG': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M5 10h14M5 15h14M5 20h14"/></svg>`,
-            'STM': `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0b90b" stroke-width="2" stroke-linecap="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/></svg>`
-        };
-
-        let cachedWeather = {};
-        let currentCityIndex = 0;
-
-        window.onload = function() {
-            startLoading();
-            fetchLiveWeather().then(() => showMiniWeather(0));
-            setInterval(fetchLiveWeather, 300000);
-            updateUiDateTime();
-            setInterval(updateUiDateTime, 1000);
-            setInterval(cycleWeather, 5000);
-
-            document.getElementById('searchInput').addEventListener('input', function() {
-                const q = this.value.trim().toLowerCase();
-                const filtered = currentGroupData.filter(x => x.name.toLowerCase().includes(q));
-                renderC(filtered);
+        // ڕاکێشانی فایلی M3U
+        fetch(M3U_URL)
+            .then(res => res.text())
+            .then(data => {
+                parseM3U(data);
+                document.getElementById('status').innerText = "کەناڵەکان بارکران. کلیک لە هەریەکەیان بکه بۆ پەخشکردن.";
+            })
+            .catch(err => {
+                document.getElementById('status').innerText = "کێشە لە وەرگرتنی لیستەکە هەیە (Network / CORS Error).";
             });
-        };
 
-        async function fetchLiveWeather() {
-            for (let i = 0; i < kurdistanCities.length; i++) {
-                const city = kurdistanCities[i];
-                try {
-                    const res = await fetch(
-                        `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia/Baghdad`
-                        );
-                    if (res.ok) {
-                        const data = await res.json();
-                        const info = weatherCodes[data.current.weather_code] || { text: 'Clear Sky', icon: 'SUN' };
-                        cachedWeather[i] = {
-                            name: city.name,
-                            temp: `${Math.round(data.current.temperature_2m)}`,
-                            desc: info.text,
-                            iconKey: info.icon
-                        };
-                    }
-                } catch (e) {}
-            }
-        }
-
-        function showMiniWeather(index) {
-            const data = cachedWeather[index];
-            if (!data) return;
-            document.getElementById('pCity').innerText = data.name;
-            document.getElementById('pTemp').innerText = data.temp + 'deg';
-            document.getElementById('pDesc').innerText = data.desc;
-            document.getElementById('pIcon').innerHTML = weatherSVGs[data.iconKey] || '-';
-            document.getElementById('pTemp').innerText = data.temp + '\u00b0C';
-        }
-
-        function cycleWeather() {
-            const el = document.getElementById('pWeatherBox');
-            if (!el) return;
-            el.style.opacity = 0;
-            setTimeout(() => {
-                currentCityIndex = (currentCityIndex + 1) % kurdistanCities.length;
-                showMiniWeather(currentCityIndex);
-                el.style.opacity = 1;
-            }, 400);
-        }
-
-        function getKurdishDate(date) {
-            const kurdishMonths = ["خاکەلێوە", "بانەمەڕ", "جۆزەردان", "پوشپەڕ", "گەلاوێژ", "خەرمانان", "ڕەزبەر", "گەڵاڕێزان",
-                "سەرماوەز", "بەفرانبار", "ڕێبەندان", "ڕەشەمە"
-            ];
-            try {
-                const PersianFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { day: 'numeric', month: 'numeric',
-                    year: 'numeric' });
-                const parts = PersianFormatter.format(date).split('/');
-                let kYear = parseInt(parts[2]) + 1321;
-                return `${parseInt(parts[1])}ی ${kurdishMonths[parseInt(parts[0]) - 1]}ی ${kYear}`;
-            } catch (e) { return ""; }
-        }
-
-        function getGregorianDateStr(date) {
-            const months = ["کانوونی دووەم", "شوبات", "ئازار", "نیسان", "ئایار", "حوزەیران", "تەممووز", "ئاب", "ئەیلوول",
-                "تشرینی یەکەم", "تشرینی دووەم", "کانوونی یەکەم"
-            ];
-            return `${date.getDate()}ی ${months[date.getMonth()]}ی ${date.getFullYear()}`;
-        }
-
-        function updateUiDateTime() {
-            const now = new Date();
-            document.getElementById('pClock').innerText =
-                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-            let hijriStr = "";
-            try {
-                hijriStr = new Intl.DateTimeFormat('ar-SA', { calendar: 'islamic-umalqura', day: 'numeric',
-                    month: 'long', year: 'numeric' }).format(now).replace('\u0647\u0640', '\u06a9\u06c6\u0686\u06cc');
-            } catch (e) { hijriStr = ""; }
-            document.getElementById('pDates').innerText = `${hijriStr}  |  ${getKurdishDate(now)}`;
-            document.getElementById('pGregorian').innerText = getGregorianDateStr(now);
-        }
-
-        async function startLoading() {
-            try {
-                const r = await fetch(M3U_URL);
-                const d = await r.text();
-                parseM3U(d);
-                fetchEPG();
-                document.getElementById('loadingOverlay').style.display = 'none';
-            } catch (e) {
-                document.getElementById('loadingStatus').innerHTML =
-                    "<span style='color:#e53935;'>خەتا لە هێنانی بەستەرەکە! دڵنیابەوە لە ئینتەرنێتەکەت.</span>";
-            }
-        }
-
-        async function fetchEPG() {
-            try {
-                const res = await fetch(EPG_URL);
-                const text = await res.text();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(text, "text/xml");
-                const programmes = xmlDoc.getElementsByTagName("programme");
-                for (let i = 0; i < programmes.length; i++) {
-                    const prog = programmes[i];
-                    const channelId = prog.getAttribute("channel");
-                    const title = prog.getElementsByTagName("title")[0]?.textContent || "";
-                    const start = prog.getAttribute("start");
-                    if (!epgData[channelId]) epgData[channelId] = [];
-                    epgData[channelId].push({ title, start });
-                }
-            } catch (e) {}
-        }
-
+        // شیکردنەوەی فایلی M3U
         function parseM3U(data) {
             const lines = data.split('\n');
-            let obj = {};
-            allData = [];
-            lines.forEach(l => {
-                if (l.startsWith('#EXTINF:')) {
-                    obj.name = l.split(',')[1]?.trim() || "Channel";
-                    const g = l.match(/group-title="([^"]+)"/i);
-                    const im = l.match(/tvg-logo="([^"]+)"/i);
-                    const cid = l.match(/tvg-id="([^"]+)"/i);
-                    obj.group = g ? g[1] : "General";
-                    obj.logo = im ? im[1] : "";
-                    obj.id = cid ? cid[1] : "";
-                } else if (l.startsWith('http')) {
-                    obj.url = l.trim();
-                    allData.push(obj);
-                    obj = {};
+            let currentChannel = {};
+            const groups = new Set();
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('#EXTINF:')) {
+                    // وەرگرتنی ناوی گرووپ
+                    const groupMatch = line.match(/group-title="([^"]+)"/);
+                    const group = groupMatch ? groupMatch[1] : 'Uncategorized';
+                    groups.add(group);
+
+                    // وەرگرتنی لۆگۆ
+                    const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                    const logo = logoMatch ? logoMatch[1] : '';
+
+                    // وەرگرتنی ناوی کەناڵ
+                    const nameParts = line.split(',');
+                    const name = nameParts[nameParts.length - 1];
+
+                    currentChannel = { name, group, logo };
+                } else if (line.startsWith('http')) {
+                    currentChannel.url = line;
+                    allChannels.push(currentChannel);
+                    currentChannel = {};
                 }
             });
-            renderG();
-            const firstBtn = document.querySelector('.group-btn');
-            if (allData.length > 0) filter("هەمووی", firstBtn);
+
+            // پرکردنەوەی لیستی گرووپەکان
+            const select = document.getElementById('groupSelect');
+            groups.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.innerText = g;
+                select.appendChild(opt);
+            });
+
+            renderChannels(allChannels);
         }
 
-        function renderG() {
-            const gs = ["هەمووی", ...new Set(allData.map(x => x.group))];
-            document.getElementById('groupCount').innerText = gs.length - 1;
-            document.getElementById('gList').innerHTML = gs.map(g => {
-                return `<button class="group-btn" onclick="filter('${g.replace(/'/g,"\\'")}', this)">
-                            <span class="group-dot"></span>
-                            <span>${g}</span>
-                        </button>`;
-            }).join('');
+        // نیشاندانی کەناڵەکان بە لۆگۆوە لە خوارەوە
+        function renderChannels(channels) {
+            const list = document.getElementById('channelList');
+            list.innerHTML = '';
+
+            channels.slice(0, 200).forEach(ch => { // نمایشکردنی ٢٠٠ کەناڵی سەرەتا
+                const li = document.createElement('li');
+                li.className = 'channel-item';
+                
+                const img = document.createElement('img');
+                img.src = ch.logo || 'https://via.placeholder.com/50?text=TV';
+                img.onerror = () => img.src = 'https://via.placeholder.com/50?text=TV';
+
+                const span = document.createElement('span');
+                span.className = 'channel-name';
+                span.innerText = ch.name;
+
+                li.appendChild(img);
+                li.appendChild(span);
+
+                li.onclick = () => playStream(ch.url, ch.name);
+                list.appendChild(li);
+            });
         }
 
-        function renderC(list) {
-            document.getElementById('chanCount').innerText = list.length;
-            document.getElementById('cList').innerHTML = list.map((x, index) => {
-                const img = x.logo ? x.logo :
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=1a2030&color=f0b90b&bold=true&size=80`;
-                const isActive = (x.url === currentActiveUrl) ? 'active-channel' : '';
-                return `<div class="chan-card ${isActive}" onclick="play('${x.url.replace(/'/g,"\\'")}', '${x.name.replace(/'/g,"\\'")}', '${x.id}', this)">
-                            <span class="chan-num">${index + 1}</span>
-                            <img src="${img}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(x.name)}&background=1a2030&color=f0b90b&bold=true&size=80'">
-                            <span class="chan-name">${x.name}</span>
-                            <span class="live-badge">LIVE</span>
-                        </div>`;
-            }).join('');
-        }
-
-        function play(u, n, id, element) {
-            currentActiveUrl = u;
-            document.getElementById('title').innerText = n;
-            document.querySelectorAll('.chan-card').forEach(c => c.classList.remove('active-channel'));
-            if (element) element.classList.add('active-channel');
-
-            const epgDisplay = document.getElementById('epgDisplay');
-            const epgText = document.getElementById('epgText');
-            if (id && epgData[id] && epgData[id].length > 0) {
-                epgText.innerText = `ئێستا: ${epgData[id][0].title}`;
-                epgDisplay.classList.add('visible');
+        // فلتەرکردن بەپێی گرووپ
+        function filterChannels() {
+            const selectedGroup = document.getElementById('groupSelect').value;
+            if (selectedGroup === 'ALL') {
+                renderChannels(allChannels);
             } else {
-                epgDisplay.classList.remove('visible');
-            }
-
-            if (Hls.isSupported()) {
-                hls.destroy();
-                hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-                hls.loadSource(u);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = u;
-                video.play().catch(() => {});
+                const filtered = allChannels.filter(c => c.group === selectedGroup);
+                renderChannels(filtered);
             }
         }
 
-        function filter(g, btnElement) {
-            document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active-group'));
-            if (btnElement) btnElement.classList.add('active-group');
-            document.getElementById('searchInput').value = '';
-            currentGroupData = (g === "هەمووی") ? allData : allData.filter(x => x.group === g);
-            renderC(currentGroupData);
+        // لێدانی کەناڵەکە
+        function playStream(url, name) {
+            const video = document.getElementById('videoPlayer');
+            video.src = url;
+            document.getElementById('status').innerText = "پەخشکردنی: " + name;
         }
     </script>
-
 </body>
 </html>
