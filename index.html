@@ -204,7 +204,9 @@
 
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
-        const m3uUrl = 'https://opop.pro/MSpHUvsRZLNkaC';
+        // بەکارهێنانی پرۆکسی بۆ تێپەڕاندنی کێشەی CORS بە ئاسانی
+const targetUrl = 'https://opop.pro/MSpHUvsRZLNkaC';
+const m3uUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
         let player = videojs('tvPlayer');
         let allGroups = {};
 
