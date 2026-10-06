@@ -205,8 +205,9 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
         // بەکارهێنانی پرۆکسی بۆ تێپەڕاندنی کێشەی CORS بە ئاسانی
-const targetUrl = 'https://opop.pro/MSpHUvsRZLNkaC';
-const m3uUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+        const targetUrl = 'https://opop.pro/MSpHUvsRZLNkaC';
+        const m3uUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+        
         let player = videojs('tvPlayer');
         let allGroups = {};
 
@@ -217,7 +218,7 @@ const m3uUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target
                 const text = await response.text();
                 parseM3U(text);
             } catch (error) {
-                document.getElementById('groupsList').innerHTML = `<div class="error">کێشەی CORS هەیە.</div>`;
+                document.getElementById('groupsList').innerHTML = `<div class="error">کێشە لە هێنانی داتاکەدا هەیە.</div>`;
             }
         }
 
