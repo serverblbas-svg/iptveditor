@@ -23,7 +23,7 @@
 
         /* ستونی لیستی کەناڵەکان */
         .channels-sidebar {
-            width: 320px;
+            width: 340px;
             background: #1e293b;
             border-left: 1px solid #334155;
             display: flex;
@@ -125,10 +125,26 @@
             object-fit: contain;
         }
 
+        .channel-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+        }
+
         .channel-name {
             font-size: 0.9rem;
             font-weight: 600;
             color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .channel-epg {
+            font-size: 0.75rem;
+            color: #38bdf8;
+            margin-top: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -166,6 +182,7 @@
             font-size: 1rem;
             color: #94a3b8;
             font-weight: 500;
+            text-align: center;
         }
 
         .loading, .error {
@@ -204,18 +221,67 @@
 
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
-       
+        const m3uUrl = "https://xtream-ie.net/get.php?username=kbhs00964&password=00964kbhs&type=m3u_plus";
+        const epgUrl = "https://xtream-ie.net/xmltv.php?username=kbhs00964&password=00964kbhs";
+
         let player = videojs('tvPlayer');
         let allGroups = {};
+        let epgData = {};
+
+        // بارکردنی فایلی XMLTV EPG
+        async function loadEPG() {
+            try {
+                const response = await fetch(epgUrl);
+                if (!response.ok) return;
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                const programmes = xmlDoc.getElementsByTagName("programme");
+
+                const now = new Date();
+
+                for (let prog of programmes) {
+                    const channelId = prog.getAttribute("channel");
+                    const startStr = prog.getAttribute("start");
+                    const stopStr = prog.getAttribute("stop");
+
+                    if (startStr && stopStr) {
+                        const startTime = parseEPGDate(startStr);
+                        const stopTime = parseEPGDate(stopStr);
+
+                        if (now >= startTime && now <= stopTime) {
+                            const titleElem = prog.getElementsByTagName("title")[0];
+                            if (titleElem) {
+                                epgData[channelId] = titleElem.textContent;
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.log("گەڕانەوەی EPG سەرکەوتوو نەبوو یاخود CORS ڕێگری کرد:", err);
+            }
+        }
+
+        function parseEPGDate(str) {
+            // نموونەی کاتی XMLTV: 20261030120000 +0300
+            const y = str.substring(0, 4);
+            const m = str.substring(4, 6) - 1;
+            const d = str.substring(6, 8);
+            const h = str.substring(8, 10);
+            const min = str.substring(10, 12);
+            const s = str.substring(12, 14);
+            return new Date(Date.UTC(y, m, d, h, min, s));
+        }
 
         async function loadPlaylist() {
             try {
+                await loadEPG();
                 const response = await fetch(m3uUrl);
                 if (!response.ok) throw new Error('شکست لە هێنانی لینکەکە');
                 const text = await response.text();
                 parseM3U(text);
             } catch (error) {
-                document.getElementById('groupsList').innerHTML = `<div class="error">کێشە لە هێنانی داتاکەدا هەیە.</div>`;
+                document.getElementById('groupsList').innerHTML = `<div class="error">کێشە لە هێنانی داتاکەدا هەیە. (CORS ڕەنگە ڕێگربێت)</div>`;
             }
         }
 
@@ -228,6 +294,10 @@
                 let line = lines[i].trim();
                 if (line.startsWith('#EXTINF:')) {
                     currentChannel = {};
+
+                    // tvg-id بۆ بەستنەوە بە EPG
+                    const tvgIdMatch = line.match(/tvg-id="([^"]*)"/);
+                    currentChannel.tvgId = (tvgIdMatch && tvgIdMatch[1]) ? tvgIdMatch[1] : '';
                     
                     // دۆزینەوەی لۆگۆ
                     const logoMatch = line.match(/tvg-logo="([^"]*)"/);
@@ -292,18 +362,25 @@
             channels.forEach(channel => {
                 const card = document.createElement('div');
                 card.className = 'channel-card';
+                
+                const currentProg = epgData[channel.tvgId] || '';
+                const epgHtml = currentProg ? `<div class="channel-epg">📺 ${currentProg}</div>` : '';
+
                 card.innerHTML = `
                     <div class="channel-logo">
                         <img src="${channel.logo}" alt="${channel.name}" onerror="this.src='https://via.placeholder.com/150?text=TV'">
                     </div>
-                    <div class="channel-name">${channel.name}</div>
+                    <div class="channel-info">
+                        <div class="channel-name">${channel.name}</div>
+                        ${epgHtml}
+                    </div>
                 `;
 
                 card.addEventListener('click', () => {
                     document.querySelectorAll('#channelsList .channel-card').forEach(c => c.classList.remove('active'));
                     card.classList.add('active');
 
-                    document.getElementById('currentPlayingTitle').innerText = `پەخشکردن: ${channel.name}`;
+                    document.getElementById('currentPlayingTitle').innerText = `پەخشکردن: ${channel.name} ${currentProg ? `(${currentProg})` : ''}`;
                     player.src({ type: 'application/x-mpegURL', src: channel.url });
                     player.play();
                 });
